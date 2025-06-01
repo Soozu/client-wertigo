@@ -1,0 +1,320 @@
+.map-component {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.leaflet-container {
+  width: 100%;
+  height: 100%;
+  border-radius: 12px;
+}
+
+/* Custom numbered marker styles */
+.custom-numbered-marker {
+  background: transparent;
+  border: none;
+}
+
+/* Popup styles */
+.map-popup {
+  min-width: 220px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.popup-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 8px;
+}
+
+.popup-header h3 {
+  color: #1da1f2;
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0;
+  line-height: 1.3;
+  flex: 1;
+}
+
+.popup-number {
+  background: #1da1f2;
+  color: white;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 10px;
+  margin-left: 8px;
+}
+
+.map-popup p {
+  margin: 6px 0;
+  font-size: 13px;
+  color: #14171a;
+  line-height: 1.4;
+}
+
+.map-popup strong {
+  color: #657786;
+  font-weight: 500;
+}
+
+/* Enhanced route information overlay */
+.route-info {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  z-index: 1000;
+  min-width: 200px;
+}
+
+.route-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.route-stat {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+}
+
+.route-icon {
+  font-size: 16px;
+  width: 20px;
+  text-align: center;
+}
+
+.route-label {
+  color: #657786;
+  font-weight: 500;
+  min-width: 60px;
+}
+
+.route-value {
+  color: #14171a;
+  font-weight: 600;
+  margin-left: auto;
+}
+
+/* Route loading indicator */
+.route-loading {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-radius: 12px;
+  padding: 20px 24px;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.15);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  z-index: 1000;
+  font-size: 14px;
+  font-weight: 500;
+  color: #1da1f2;
+}
+
+.loading-spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid #e1e8ed;
+  border-top: 2px solid #1da1f2;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Map overlay for empty state */
+.map-overlay {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-radius: 16px;
+  padding: 32px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  z-index: 1000;
+  max-width: 300px;
+}
+
+.map-message h3 {
+  color: #1da1f2;
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0 0 12px 0;
+}
+
+.map-message p {
+  color: #657786;
+  font-size: 14px;
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* Leaflet control customization */
+.leaflet-control-zoom {
+  border: none !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1) !important;
+}
+
+.leaflet-control-zoom a {
+  background: rgba(255, 255, 255, 0.95) !important;
+  color: #1da1f2 !important;
+  border: none !important;
+  font-weight: 600 !important;
+  backdrop-filter: blur(10px);
+  transition: all 0.2s ease !important;
+}
+
+.leaflet-control-zoom a:hover {
+  background: #1da1f2 !important;
+  color: white !important;
+  transform: scale(1.05);
+}
+
+/* Custom attribution styling */
+.leaflet-control-attribution {
+  background: rgba(255, 255, 255, 0.8) !important;
+  backdrop-filter: blur(10px);
+  font-size: 11px !important;
+  border-radius: 4px !important;
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+  .route-info {
+    top: 10px;
+    right: 10px;
+    left: 10px;
+    padding: 12px 16px;
+    min-width: auto;
+  }
+  
+  .route-stats {
+    flex-direction: row;
+    justify-content: space-between;
+    gap: 8px;
+  }
+  
+  .route-stat {
+    flex-direction: column;
+    text-align: center;
+    gap: 4px;
+    font-size: 12px;
+  }
+  
+  .route-label {
+    min-width: auto;
+    font-size: 11px;
+  }
+  
+  .route-value {
+    margin-left: 0;
+    font-size: 13px;
+  }
+  
+  .route-loading {
+    padding: 16px 20px;
+    font-size: 13px;
+  }
+  
+  .map-overlay {
+    padding: 24px;
+    max-width: 280px;
+  }
+  
+  .map-message h3 {
+    font-size: 16px;
+  }
+  
+  .map-message p {
+    font-size: 13px;
+  }
+  
+  .map-popup {
+    min-width: 200px;
+  }
+  
+  .popup-header h3 {
+    font-size: 14px;
+  }
+  
+  .map-popup p {
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .route-info {
+    top: 8px;
+    right: 8px;
+    left: 8px;
+    padding: 10px 12px;
+  }
+  
+  .route-stat {
+    font-size: 11px;
+  }
+  
+  .route-value {
+    font-size: 12px;
+  }
+  
+  .route-loading {
+    padding: 12px 16px;
+    font-size: 12px;
+  }
+  
+  .loading-spinner {
+    width: 16px;
+    height: 16px;
+  }
+  
+  .map-overlay {
+    padding: 20px;
+    max-width: 260px;
+  }
+  
+  .map-message h3 {
+    font-size: 15px;
+  }
+  
+  .map-message p {
+    font-size: 12px;
+  }
+  
+  .map-popup {
+    min-width: 180px;
+  }
+  
+  .popup-header h3 {
+    font-size: 13px;
+  }
+  
+  .popup-number {
+    font-size: 10px;
+    padding: 1px 4px;
+  }
+} 

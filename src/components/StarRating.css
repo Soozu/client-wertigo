@@ -1,0 +1,264 @@
+/* Star Rating Component Styles */
+.star-rating {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.stars-container {
+  display: flex;
+  gap: 0.2rem;
+}
+
+.star-button {
+  background: none;
+  border: none;
+  padding: 0.2rem;
+  cursor: default;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.star-button.clickable {
+  cursor: pointer;
+}
+
+.star-button.clickable:hover {
+  background: rgba(29, 161, 242, 0.1);
+  transform: scale(1.1);
+}
+
+.star-button:disabled {
+  cursor: default;
+}
+
+.star-icon {
+  transition: all 0.2s ease;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1));
+}
+
+.star-icon.full {
+  color: #ffd700;
+}
+
+.star-icon.empty {
+  color: #e1e8ed;
+}
+
+.star-icon.half {
+  color: #e1e8ed;
+}
+
+/* Half star overlay */
+.star-half-overlay {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 50%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.star-half-overlay .star-icon.half-fill {
+  color: #ffd700;
+  position: absolute;
+  top: 50%;
+  left: 0;
+  transform: translateY(-50%);
+}
+
+/* Rating value display */
+.rating-value {
+  font-size: 0.9em;
+  color: #657786;
+  font-weight: 500;
+  margin-left: 0.3rem;
+}
+
+/* Interactive states */
+.star-rating.interactive .star-button.clickable:hover .star-icon {
+  color: #ffd700;
+  transform: scale(1.05);
+}
+
+.star-rating.interactive .star-button.clickable:active .star-icon {
+  transform: scale(0.95);
+}
+
+/* Quick rating variant */
+.star-rating.quick-rating {
+  gap: 0.3rem;
+}
+
+.star-rating.quick-rating .stars-container {
+  gap: 0.1rem;
+}
+
+.star-rating.quick-rating .star-button {
+  padding: 0.1rem;
+}
+
+.star-rating.quick-rating .rating-value {
+  font-size: 0.8em;
+}
+
+/* Rating input wrapper */
+.rating-input-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.rating-label {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #14171a;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.required {
+  color: #f44336;
+}
+
+.rating-input {
+  padding: 0.5rem;
+  border: 2px solid #e1e8ed;
+  border-radius: 8px;
+  transition: border-color 0.3s ease;
+}
+
+.rating-input:focus-within {
+  border-color: #1da1f2;
+  box-shadow: 0 0 0 3px rgba(29, 161, 242, 0.1);
+}
+
+.rating-error {
+  color: #f44336;
+  font-size: 0.85rem;
+  margin-top: 0.3rem;
+}
+
+/* Size variants */
+.star-rating.size-small .star-icon {
+  width: 16px;
+  height: 16px;
+}
+
+.star-rating.size-medium .star-icon {
+  width: 20px;
+  height: 20px;
+}
+
+.star-rating.size-large .star-icon {
+  width: 24px;
+  height: 24px;
+}
+
+.star-rating.size-xl .star-icon {
+  width: 32px;
+  height: 32px;
+}
+
+/* Color variants */
+.star-rating.variant-gold .star-icon.full {
+  color: #ffd700;
+}
+
+.star-rating.variant-blue .star-icon.full {
+  color: #1da1f2;
+}
+
+.star-rating.variant-green .star-icon.full {
+  color: #4caf50;
+}
+
+.star-rating.variant-red .star-icon.full {
+  color: #f44336;
+}
+
+/* Animation for rating changes */
+@keyframes starPulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.2); }
+  100% { transform: scale(1); }
+}
+
+.star-rating.interactive .star-button.clickable:focus .star-icon,
+.star-rating.interactive .star-button.recently-clicked .star-icon {
+  animation: starPulse 0.3s ease;
+}
+
+/* Accessibility improvements */
+.star-button:focus {
+  outline: 2px solid #1da1f2;
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .star-button,
+  .star-icon {
+    transition: none;
+  }
+  
+  .star-rating.interactive .star-button.recently-clicked .star-icon {
+    animation: none;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .star-icon.full {
+    color: #000;
+  }
+  
+  .star-icon.empty {
+    color: #666;
+    stroke: #000;
+    stroke-width: 1px;
+  }
+}
+
+/* Mobile optimizations */
+@media (max-width: 768px) {
+  .star-button {
+    padding: 0.3rem;
+    min-width: 44px;
+    min-height: 44px;
+  }
+  
+  .star-rating.interactive .star-button.clickable:hover {
+    transform: none;
+    background: rgba(29, 161, 242, 0.2);
+  }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .rating-value {
+    color: #8ba3b8;
+  }
+  
+  .star-icon.empty {
+    color: #4a5568;
+  }
+  
+  .rating-label {
+    color: #e2e8f0;
+  }
+  
+  .rating-input {
+    border-color: #4a5568;
+    background: #2d3748;
+  }
+  
+  .rating-input:focus-within {
+    border-color: #63b3ed;
+  }
+} 

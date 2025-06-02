@@ -192,13 +192,6 @@ const TripViewer = () => {
           </div>
           <div className="trip-viewer-actions">
             <button 
-              className="btn-secondary"
-              onClick={handleCopyLink}
-              title="Copy trip link to share"
-            >
-              🔗 Share Trip
-            </button>
-            <button 
               className="btn-primary"
               onClick={handleBackToPlanner}
               title="Go back to trip planner"

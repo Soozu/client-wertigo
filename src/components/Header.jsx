@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { User, LogOut, Settings, ChevronDown } from 'lucide-react'
+import { User, LogOut, ChevronDown } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import './Header.css'
 
@@ -153,14 +153,25 @@ const Header = () => {
               <div className="dropdown-divider" />
               
               <div className="dropdown-menu">
-                <button className="dropdown-item" onClick={() => setIsUserMenuOpen(false)}>
+                <Link 
+                  to="/profile" 
+                  className="dropdown-item"
+                  onClick={() => setIsUserMenuOpen(false)}
+                >
                   <User size={16} />
                   <span>Profile</span>
-                </button>
-                <button className="dropdown-item" onClick={() => setIsUserMenuOpen(false)}>
-                  <Settings size={16} />
-                  <span>Settings</span>
-                </button>
+                </Link>
+                
+                {user.role === 'admin' && (
+                  <Link 
+                    to="/admin" 
+                    className="dropdown-item"
+                    onClick={() => setIsUserMenuOpen(false)}
+                  >
+                    <User size={16} />
+                    <span>Admin Dashboard</span>
+                  </Link>
+                )}
                 
                 <div className="dropdown-divider" />
                 

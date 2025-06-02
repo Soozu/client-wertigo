@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Plus, MapPin, DollarSign, Calendar, Users, Route, Clock, Save } from 'lucide-react'
+import { Plus, MapPin, Calendar, Users, Save } from 'lucide-react'
 import { saveTripTracker } from '../services/ticketApi'
 import './TripPlanner.css'
 
@@ -32,6 +32,8 @@ const TripPlanner = ({
   })
   const [saveLoading, setSaveLoading] = useState(false)
   const [saveResult, setSaveResult] = useState(null)
+  // Confirmation modal for clear trip
+  const [showClearConfirm, setShowClearConfirm] = useState(false)
 
   // Get destinations from trip object, with fallback to empty array
   const destinations = trip?.destinations || []
@@ -79,6 +81,23 @@ const TripPlanner = ({
       'Other': '#95a5a6'
     }
     return colors[category] || '#3498db'
+  }
+
+  // Handle clear all destinations
+  const handleClearTrip = () => {
+    setShowClearConfirm(true)
+  }
+
+  const confirmClearTrip = () => {
+    // Remove all destinations one by one
+    if (destinations && destinations.length > 0) {
+      // Create a copy to avoid modification during iteration
+      const destinationsCopy = [...destinations]
+      destinationsCopy.forEach(destination => {
+        onDestinationRemove(destination.id)
+      })
+    }
+    setShowClearConfirm(false)
   }
 
   // Handle save trip
@@ -150,8 +169,11 @@ const TripPlanner = ({
     })
   }
 
-  // Safe reduce with fallback
-  const totalBudget = destinations.reduce((sum, dest) => sum + (dest.budget || 0), 0)
+  // Calculate total budget from destinations with proper parsing
+  const totalBudget = destinations.reduce((sum, dest) => {
+    const budget = parseFloat(dest.budget) || 0
+    return sum + budget
+  }, 0)
 
   if (loading) {
     return (
@@ -188,7 +210,14 @@ const TripPlanner = ({
             <Save size={16} />
             Save Plan
           </button>
-          <button className="planner-btn secondary">Clear</button>
+          <button 
+            className="planner-btn secondary"
+            onClick={handleClearTrip}
+            disabled={!trip?.id || destinations.length === 0 || readOnly}
+            title="Clear all destinations"
+          >
+            Clear
+          </button>
         </div>
       </div>
 
@@ -208,39 +237,12 @@ const TripPlanner = ({
                 <span>{trip.start_date} - {trip.end_date}</span>
               </div>
             )}
-            {trip.travelers && (
-              <div className="trip-detail">
-                <Users size={16} />
-                <span>{trip.travelers} travelers</span>
-              </div>
-            )}
             {trip.budget && (
               <div className="trip-detail">
-                <DollarSign size={16} />
-                <span>₱{trip.budget.toLocaleString()}</span>
+                <span style={{ fontSize: '16px' }}>₱</span>
+                <span>₱{parseFloat(trip.budget).toLocaleString()}</span>
               </div>
             )}
-          </div>
-        </div>
-      )}
-
-      {/* Route Information Section */}
-      {routeData && destinations.length > 1 && (
-        <div className="route-info-section">
-          <h3>🗺️ Route Information</h3>
-          <div className="route-details">
-            <div className="route-detail">
-              <Route size={16} />
-              <span>{routeData.distance_km} km total distance</span>
-            </div>
-            <div className="route-detail">
-              <Clock size={16} />
-              <span>{Math.round(routeData.time_min)} min estimated time</span>
-            </div>
-            <div className="route-detail">
-              <MapPin size={16} />
-              <span>{destinations.length} stops planned</span>
-            </div>
           </div>
         </div>
       )}
@@ -317,10 +319,10 @@ const TripPlanner = ({
                 </p>
               )}
               
-                {destination.budget && destination.budget > 0 && (
+                {destination.budget && parseFloat(destination.budget) > 0 && (
                 <p className="destination-budget">
-                  <DollarSign size={14} />
-                  ₱{destination.budget.toLocaleString()}
+                  <span style={{ fontSize: '14px', color: '#27ae60' }}>₱</span>
+                  {parseFloat(destination.budget).toLocaleString()}
                 </p>
               )}
               
@@ -334,16 +336,6 @@ const TripPlanner = ({
                   <p className="destination-rating">
                     ⭐ {destination.rating}/5
                   </p>
-              )}
-
-                {/* Show route segment info if available */}
-                {routeData && index < destinations.length - 1 && (
-                  <div className="route-segment">
-                    <div className="route-arrow">↓</div>
-                    <span className="route-segment-text">
-                      Next stop: ~{Math.round(routeData.time_min / (destinations.length - 1))} min
-                    </span>
-                  </div>
               )}
             </div>
             ))
@@ -362,30 +354,7 @@ const TripPlanner = ({
             <div className="stat-value">₱{totalBudget.toLocaleString()}</div>
             <div className="stat-label">Est. Budget</div>
           </div>
-          {routeData && (
-            <>
-              <div className="stat-item">
-                <div className="stat-value">{routeData.distance_km} km</div>
-                <div className="stat-label">Total Distance</div>
-              </div>
-              <div className="stat-item">
-                <div className="stat-value">{Math.round(routeData.time_min / 60)}h {routeData.time_min % 60}m</div>
-                <div className="stat-label">Travel Time</div>
-              </div>
-            </>
-          )}
         </div>
-        
-        {destinations.length > 0 && !readOnly && (
-          <div className="trip-actions">
-            <button className="action-btn primary">
-              📱 Export Itinerary
-            </button>
-            <button className="action-btn secondary">
-              📧 Share Trip
-            </button>
-          </div>
-        )}
       </div>
 
       {/* Save Trip Modal */}
@@ -517,6 +486,42 @@ const TripPlanner = ({
                 </div>
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Clear Trip Confirmation Modal */}
+      {showClearConfirm && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <div className="modal-header">
+              <h3>⚠️ Clear All Destinations</h3>
+              <button 
+                className="modal-close"
+                onClick={() => setShowClearConfirm(false)}
+              >
+                ×
+              </button>
+            </div>
+            <div className="modal-body">
+              <p>Are you sure you want to remove all destinations from your trip? This action cannot be undone.</p>
+              
+              <div className="modal-actions">
+                <button 
+                  className="btn btn-secondary"
+                  onClick={() => setShowClearConfirm(false)}
+                >
+                  Cancel
+                </button>
+                <button 
+                  className="btn btn-primary"
+                  style={{ backgroundColor: '#e74c3c' }}
+                  onClick={confirmClearTrip}
+                >
+                  Clear All Destinations
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}

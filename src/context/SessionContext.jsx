@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { initializeSession, healthAPI } from '../services/api';
+import { initializePythonSession, healthAPI } from '../services/api';
 
 const SessionContext = createContext();
 
@@ -12,31 +12,50 @@ export const useSession = () => {
 };
 
 export const SessionProvider = ({ children }) => {
-  const [sessionId, setSessionId] = useState(null);
-  const [isConnected, setIsConnected] = useState(false);
+  const [pythonSessionId, setPythonSessionId] = useState(null);
+  const [isPythonConnected, setIsPythonConnected] = useState(false);
+  const [isExpressConnected, setIsExpressConnected] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [connectionError, setConnectionError] = useState(null);
 
-  // Initialize session and check backend connection
+  // Initialize sessions and check backend connections
   useEffect(() => {
     const initializeApp = async () => {
       setIsLoading(true);
       setConnectionError(null);
 
       try {
-        // First check if backend is available
-        await healthAPI.checkHealth();
-        setIsConnected(true);
-
-        // Then initialize session
-        const sessionId = await initializeSession();
-        setSessionId(sessionId);
+        // Check both backend health
+        const healthStatus = await healthAPI.checkHealth();
         
-        console.log('App initialized successfully with session:', sessionId);
+        setIsPythonConnected(healthStatus.pythonConnected);
+        setIsExpressConnected(healthStatus.expressConnected);
+
+        // Initialize Python session if Python backend is available
+        if (healthStatus.pythonConnected) {
+          try {
+            const sessionId = await initializePythonSession();
+            setPythonSessionId(sessionId);
+            console.log('Python session initialized:', sessionId);
+          } catch (error) {
+            console.error('Failed to initialize Python session:', error);
+            setIsPythonConnected(false);
+          }
+        }
+
+        // Check if at least one backend is connected
+        if (!healthStatus.pythonConnected && !healthStatus.expressConnected) {
+          throw new Error('Both backends are unavailable');
+        } else if (!healthStatus.expressConnected) {
+          setConnectionError('Authentication service unavailable - some features may not work');
+        } else if (!healthStatus.pythonConnected) {
+          setConnectionError('AI recommendation service unavailable - some features may not work');
+        }
+        
+        console.log('App initialized - Python:', healthStatus.pythonConnected, 'Express:', healthStatus.expressConnected);
       } catch (error) {
         console.error('Failed to initialize app:', error);
-        setIsConnected(false);
-        setConnectionError(error.message || 'Failed to connect to backend');
+        setConnectionError(error.message || 'Failed to connect to backend services');
       } finally {
         setIsLoading(false);
       }
@@ -47,24 +66,52 @@ export const SessionProvider = ({ children }) => {
 
   // Periodic health check
   useEffect(() => {
-    if (!isConnected) return;
-
     const healthCheckInterval = setInterval(async () => {
       try {
-        await healthAPI.checkHealth();
-        if (!isConnected) {
-          setIsConnected(true);
-          setConnectionError(null);
+        const healthStatus = await healthAPI.checkHealth();
+        
+        // Update connection status
+        const pythonStatusChanged = isPythonConnected !== healthStatus.pythonConnected;
+        const expressStatusChanged = isExpressConnected !== healthStatus.expressConnected;
+        
+        if (pythonStatusChanged || expressStatusChanged) {
+          setIsPythonConnected(healthStatus.pythonConnected);
+          setIsExpressConnected(healthStatus.expressConnected);
+          
+          // Update connection error message
+          if (!healthStatus.pythonConnected && !healthStatus.expressConnected) {
+            setConnectionError('Both backends are unavailable');
+          } else if (!healthStatus.expressConnected) {
+            setConnectionError('Authentication service unavailable - some features may not work');
+          } else if (!healthStatus.pythonConnected) {
+            setConnectionError('AI recommendation service unavailable - some features may not work');
+          } else {
+            setConnectionError(null);
+          }
+          
+          console.log('Connection status updated - Python:', healthStatus.pythonConnected, 'Express:', healthStatus.expressConnected);
+        }
+        
+        // Reinitialize Python session if it was disconnected and now reconnected
+        if (!isPythonConnected && healthStatus.pythonConnected && !pythonSessionId) {
+          try {
+            const sessionId = await initializePythonSession();
+            setPythonSessionId(sessionId);
+            console.log('Python session reinitialized:', sessionId);
+          } catch (error) {
+            console.error('Failed to reinitialize Python session:', error);
+          }
         }
       } catch (error) {
         console.warn('Health check failed:', error);
-        setIsConnected(false);
-        setConnectionError('Connection to backend lost');
+        setIsPythonConnected(false);
+        setIsExpressConnected(false);
+        setConnectionError('Connection to backend services lost');
       }
     }, 30000); // Check every 30 seconds
 
     return () => clearInterval(healthCheckInterval);
-  }, [isConnected]);
+  }, [isPythonConnected, isExpressConnected, pythonSessionId]);
 
   // Retry connection
   const retryConnection = async () => {
@@ -72,24 +119,45 @@ export const SessionProvider = ({ children }) => {
     setConnectionError(null);
 
     try {
-      await healthAPI.checkHealth();
-      setIsConnected(true);
+      const healthStatus = await healthAPI.checkHealth();
       
-      if (!sessionId) {
-        const newSessionId = await initializeSession();
-        setSessionId(newSessionId);
+      setIsPythonConnected(healthStatus.pythonConnected);
+      setIsExpressConnected(healthStatus.expressConnected);
+      
+      // Initialize Python session if available and not already initialized
+      if (healthStatus.pythonConnected && !pythonSessionId) {
+        const sessionId = await initializePythonSession();
+        setPythonSessionId(sessionId);
       }
+      
+      // Update error message based on what's available
+      if (!healthStatus.pythonConnected && !healthStatus.expressConnected) {
+        setConnectionError('Both backends are still unavailable');
+      } else if (!healthStatus.expressConnected) {
+        setConnectionError('Authentication service unavailable - some features may not work');
+      } else if (!healthStatus.pythonConnected) {
+        setConnectionError('AI recommendation service unavailable - some features may not work');
+      }
+      
     } catch (error) {
       console.error('Retry connection failed:', error);
-      setConnectionError(error.message || 'Failed to reconnect');
+      setConnectionError(error.message || 'Failed to reconnect to backend services');
     } finally {
       setIsLoading(false);
     }
   };
 
   const value = {
-    sessionId,
-    isConnected,
+    // Python backend session
+    pythonSessionId,
+    isPythonConnected,
+    
+    // Express backend connection
+    isExpressConnected,
+    
+    // Overall status
+    isConnected: isPythonConnected || isExpressConnected,
+    isFullyConnected: isPythonConnected && isExpressConnected,
     isLoading,
     connectionError,
     retryConnection

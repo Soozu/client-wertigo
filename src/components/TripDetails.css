@@ -138,34 +138,46 @@
 }
 
 .route-info-section {
-  background: linear-gradient(135deg, #e8f4fd 0%, #d1ecf1 100%);
-  border: 1px solid #bee5eb;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
   border-radius: 16px;
   padding: 2rem;
   margin-bottom: 3rem;
+  border: 1px solid #dee2e6;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
 }
 
 .route-info-section h2 {
   margin: 0 0 1.5rem 0;
-  color: #0c5460;
+  color: #2c3e50;
   font-weight: 700;
   font-size: 1.5rem;
 }
 
 .route-stats {
-  display: flex;
-  gap: 2rem;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.5rem;
 }
 
 .route-stat {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  color: #0c5460;
-  font-weight: 600;
-  font-size: 1.1rem;
+  padding: 1rem;
+  background: white;
+  border-radius: 12px;
+  border: 1px solid #e9ecef;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.route-stat svg {
+  color: #667eea;
+  flex-shrink: 0;
+}
+
+.route-stat span {
+  font-weight: 500;
+  color: #2c3e50;
 }
 
 .destinations-section {
@@ -558,6 +570,19 @@
   color: #533f03;
 }
 
+/* Map section styles */
+.map-section {
+  margin: 3rem 0;
+}
+
+.map-section h2 {
+  margin: 0 0 1.5rem 0;
+  color: #2c3e50;
+  font-weight: 700;
+  font-size: 1.5rem;
+}
+
+/* Responsive adjustments for map */
 @media (max-width: 768px) {
   .trip-details {
     padding: 0;
@@ -582,8 +607,12 @@
   }
 
   .route-stats {
-    flex-direction: column;
+    grid-template-columns: 1fr;
     gap: 1rem;
+  }
+
+  .route-stat {
+    padding: 0.75rem;
   }
 
   .destination-card {
@@ -609,5 +638,9 @@
     flex-direction: column;
     align-items: flex-start;
     gap: 0.5rem;
+  }
+
+  .map-section {
+    margin: 2rem 0;
   }
 } 

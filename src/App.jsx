@@ -2,12 +2,14 @@ import React from 'react'
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import { SessionProvider } from './context/SessionContext'
 import { AuthProvider } from './context/AuthContext'
-import ProtectedRoute from './components/ProtectedRoute'
+import ProtectedRoute, { ProtectedAdminRoute } from './components/ProtectedRoute'
 import Home from './pages/Home'
 import Login from './pages/Login'
 import TravelPlanner from './pages/TravelPlanner'
 import TripViewer from './pages/TripViewer'
 import TicketTracker from './pages/TicketTracker'
+import Profile from './pages/Profile'
+import AdminDashboard from './pages/AdminDashboard'
 import './App.css'
 
 function App() {
@@ -38,6 +40,22 @@ function App() {
                   <ProtectedRoute>
                     <TicketTracker />
                   </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/profile" 
+                element={
+                  <ProtectedRoute>
+                    <Profile />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/admin" 
+                element={
+                  <ProtectedAdminRoute>
+                    <AdminDashboard />
+                  </ProtectedAdminRoute>
                 } 
               />
         </Routes>

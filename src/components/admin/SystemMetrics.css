@@ -1,0 +1,257 @@
+.system-metrics {
+  padding: 0;
+}
+
+.system-metrics .admin-grid {
+  margin-bottom: 2rem;
+}
+
+.metrics-content {
+  margin-top: 2rem;
+}
+
+.health-card {
+  background: white;
+  border-radius: 16px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  border: 1px solid #e2e8f0;
+  transition: all 0.3s ease;
+}
+
+.health-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+}
+
+.health-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.health-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  color: white;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.health-icon.python {
+  background: linear-gradient(135deg, #3776ab 0%, #ffd43b 100%);
+}
+
+.health-icon.express {
+  background: linear-gradient(135deg, #68217a 0%, #000000 100%);
+}
+
+.health-info {
+  flex: 1;
+}
+
+.health-title {
+  margin: 0 0 0.25rem 0;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #1a202c;
+}
+
+.health-subtitle {
+  margin: 0;
+  font-size: 0.875rem;
+  color: #718096;
+}
+
+.health-status {
+  font-size: 1.5rem;
+}
+
+.health-details {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.health-metric {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.metric-label {
+  font-size: 0.75rem;
+  color: #718096;
+  font-weight: 500;
+}
+
+.metric-value {
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.metric-value.healthy {
+  color: #38a169;
+}
+
+.metric-value.unhealthy {
+  color: #e53e3e;
+}
+
+.performance-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.performance-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.performance-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.performance-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #4a5568;
+}
+
+.performance-value {
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.performance-bar {
+  height: 8px;
+  background: #e2e8f0;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.performance-progress {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+.api-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.api-stat-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  background: #f7fafc;
+  border-radius: 12px;
+  transition: all 0.3s ease;
+}
+
+.api-stat-item:hover {
+  background: #edf2f7;
+  transform: translateX(4px);
+}
+
+.api-stat-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 1rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.api-stat-info {
+  flex: 1;
+}
+
+.api-stat-value {
+  margin: 0 0 0.25rem 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #1a202c;
+}
+
+.api-stat-label {
+  margin: 0;
+  font-size: 0.75rem;
+  color: #718096;
+  font-weight: 500;
+}
+
+.success-rate-section {
+  padding-top: 1rem;
+  border-top: 1px solid #e2e8f0;
+}
+
+.success-rate-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.success-rate-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #4a5568;
+}
+
+.success-rate-value {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #38a169;
+}
+
+.success-rate-bar {
+  height: 8px;
+  background: #e2e8f0;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.success-rate-progress {
+  height: 100%;
+  background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+@media (max-width: 768px) {
+  .health-header {
+    flex-direction: column;
+    text-align: center;
+    gap: 0.75rem;
+  }
+  
+  .health-details {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  
+  .api-stats-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .metrics-content {
+    grid-template-columns: 1fr;
+  }
+} 

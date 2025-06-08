@@ -86,7 +86,7 @@ const TicketTracker = () => {
               <h1 className="tracker-title">Travel Ticket Tracker</h1>
             </div>
             
-            <div className="tracker-container">
+            <div className={`tracker-container ${selectedTrip ? 'trip-details-view' : ''}`}>
 
 
               {/* Search Form */}
@@ -99,7 +99,7 @@ const TicketTracker = () => {
               </div>
               
               {/* Results Section */}
-              <div className="tracker-results-section">
+              <div className={`tracker-results-section ${selectedTrip ? 'trip-details-view' : ''}`}>
                 {isLoading && (
                   <div className="loading-state">
                     <i className="fas fa-spinner fa-spin"></i>
@@ -131,6 +131,7 @@ const TicketTracker = () => {
                   <TripDetails 
                     trip={selectedTrip}
                     onBack={handleBackToSearch}
+                    context="tracker"
                   />
                 )}
 

@@ -1,0 +1,139 @@
+.ticket-analytics {
+  padding: 0;
+}
+
+.ticket-analytics .admin-grid {
+  margin-bottom: 2rem;
+}
+
+.analytics-content {
+  margin-bottom: 2rem;
+}
+
+.ticket-types-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.ticket-type-item {
+  padding: 1rem;
+  background: #f7fafc;
+  border-radius: 12px;
+  transition: all 0.3s ease;
+}
+
+.ticket-type-item:hover {
+  background: #edf2f7;
+  transform: translateX(4px);
+}
+
+.ticket-type-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.ticket-type-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 1.25rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.ticket-type-info {
+  flex: 1;
+}
+
+.ticket-type-name {
+  margin: 0 0 0.25rem 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1a202c;
+}
+
+.ticket-type-count {
+  margin: 0;
+  font-size: 0.875rem;
+  color: #718096;
+}
+
+.ticket-type-bar {
+  height: 6px;
+  background: #e2e8f0;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.ticket-type-progress {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+
+.ticket-id {
+  font-family: 'Monaco', 'Menlo', monospace;
+  font-weight: 600;
+  color: #667eea;
+  background: #edf2f7;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+}
+
+.traveler-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.traveler-name {
+  font-weight: 600;
+  color: #1a202c;
+  font-size: 0.875rem;
+}
+
+.traveler-email {
+  color: #718096;
+  font-size: 0.75rem;
+}
+
+.ticket-type-badge {
+  color: white;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: capitalize;
+}
+
+.action-btn.download {
+  background: #e6fffa;
+  color: #234e52;
+}
+
+.action-btn.download:hover {
+  background: #b2f5ea;
+}
+
+@media (max-width: 768px) {
+  .analytics-content {
+    grid-template-columns: 1fr;
+  }
+  
+  .ticket-type-header {
+    flex-direction: column;
+    text-align: center;
+    gap: 0.5rem;
+  }
+  
+  .traveler-info {
+    text-align: left;
+  }
+} 

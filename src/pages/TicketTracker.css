@@ -1,7 +1,8 @@
 .ticket-tracker {
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #5c6bc0 0%, #7986cb 100%);
   position: relative;
+  overflow-x: hidden;
 }
 
 .ticket-tracker::before {
@@ -11,9 +12,9 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="75" cy="75" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="50" cy="10" r="0.5" fill="rgba(255,255,255,0.05)"/><circle cx="20" cy="80" r="0.5" fill="rgba(255,255,255,0.05)"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
-  opacity: 0.3;
+  opacity: 0.2;
   pointer-events: none;
+  background-size: 120px 120px;
 }
 
 .tracker-main {
@@ -34,16 +35,16 @@
 }
 
 .tracker-title {
-  font-size: 4rem;
+  font-size: clamp(2.5rem, 5vw, 4rem);
   font-weight: 800;
   color: white;
   margin: 0;
-  text-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
   letter-spacing: -0.02em;
-  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  line-height: 1.1;
+  background-color: rgba(0, 0, 0, 0.2);
+  display: inline-block;
+  padding: 0.5rem 2rem;
+  border-radius: 10px;
 }
 
 .tracker-container {
@@ -66,6 +67,14 @@
   height: fit-content;
   backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.2);
+  transition: all 0.3s ease;
+}
+
+.tracker-form-section:hover {
+  transform: translateY(-4px);
+  box-shadow: 
+    0 25px 50px rgba(0, 0, 0, 0.15),
+    0 0 0 1px rgba(255, 255, 255, 0.3);
 }
 
 /* Results Section */
@@ -79,6 +88,41 @@
   min-height: 600px;
   backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.2);
+  transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
+}
+
+.tracker-results-section:hover {
+  transform: translateY(-4px);
+  box-shadow: 
+    0 25px 50px rgba(0, 0, 0, 0.15),
+    0 0 0 1px rgba(255, 255, 255, 0.3);
+}
+
+/* Full width for TripDetails */
+.tracker-results-section:has(.trip-details),
+.tracker-results-section.trip-details-view {
+  grid-column: 1 / -1;
+  max-width: none;
+  padding: 0;
+  background: transparent;
+  box-shadow: none;
+  border: none;
+  backdrop-filter: none;
+  transform: none;
+}
+
+.tracker-results-section:has(.trip-details):hover,
+.tracker-results-section.trip-details-view:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+/* Hide form section when showing trip details */
+.tracker-container:has(.trip-details) .tracker-form-section,
+.tracker-container.trip-details-view .tracker-form-section {
+  display: none;
 }
 
 /* Loading State */
@@ -89,24 +133,20 @@
   justify-content: center;
   padding: 4rem 2rem;
   color: #495057;
+  flex: 1;
 }
 
 .loading-state i {
   font-size: 3.5rem;
   color: #667eea;
   margin-bottom: 1.5rem;
-  animation: spin 2s linear infinite;
-}
-
-@keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
 }
 
 .loading-state p {
   font-size: 1.6rem;
   margin: 0;
   font-weight: 500;
+  text-align: center;
 }
 
 /* Error State */
@@ -117,6 +157,7 @@
   justify-content: center;
   padding: 4rem 2rem;
   text-align: center;
+  flex: 1;
 }
 
 .error-state i {
@@ -130,6 +171,7 @@
   color: #495057;
   margin-bottom: 2rem;
   font-weight: 500;
+  line-height: 1.4;
 }
 
 .btn-secondary {
@@ -159,6 +201,7 @@
   padding: 4rem 2rem;
   text-align: center;
   color: #6c757d;
+  flex: 1;
 }
 
 .no-results i {
@@ -172,12 +215,14 @@
   font-size: 1.6rem;
   margin: 0;
   line-height: 1.6;
+  max-width: 500px;
 }
 
 .hint {
   color: #667eea !important;
   font-weight: 500;
   margin-top: 1rem !important;
+  font-size: 1.4rem !important;
 }
 
 /* ID Generator Modal */
@@ -200,18 +245,6 @@
   max-width: 90vw;
   max-height: 90vh;
   overflow-y: auto;
-  animation: modalSlideIn 0.3s ease-out;
-}
-
-@keyframes modalSlideIn {
-  from {
-    opacity: 0;
-    transform: translateY(-50px) scale(0.9);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
 }
 
 /* Responsive Design */
@@ -220,6 +253,11 @@
     grid-template-columns: 1fr;
     gap: 2rem;
     padding: 0 1.5rem;
+  }
+  
+  .tracker-form-section,
+  .tracker-results-section {
+    padding: 2.5rem;
   }
 }
 
@@ -233,11 +271,16 @@
   }
 
   .tracker-title {
-    font-size: 3rem;
+    font-size: clamp(2rem, 6vw, 3rem);
   }
 
   .tracker-container {
     padding: 0 1rem;
+    gap: 1.5rem;
+  }
+
+  .tracker-container.trip-details-view {
+    padding: 0;
   }
 
   .tracker-form-section,
@@ -246,10 +289,24 @@
     border-radius: 16px;
   }
 
+  .tracker-results-section.trip-details-view {
+    padding: 0;
+  }
+
   .loading-state,
   .error-state,
   .no-results {
     padding: 3rem 1rem;
+  }
+
+  .loading-state p,
+  .error-state p,
+  .no-results p {
+    font-size: 1.4rem;
+  }
+
+  .hint {
+    font-size: 1.2rem !important;
   }
 }
 
@@ -259,7 +316,7 @@
   }
 
   .tracker-title {
-    font-size: 2.5rem;
+    font-size: clamp(1.8rem, 7vw, 2.5rem);
   }
 
   .tracker-form-section,
@@ -280,6 +337,15 @@
   .loading-state p,
   .error-state p,
   .no-results p {
-    font-size: 1.4rem;
+    font-size: 1.2rem;
+  }
+
+  .hint {
+    font-size: 1.1rem !important;
+  }
+
+  .btn-secondary {
+    padding: 0.8rem 1.5rem;
+    font-size: 1rem;
   }
 } 

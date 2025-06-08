@@ -1,5 +1,5 @@
 import React from 'react'
-import { ArrowLeft, MapPin, Calendar, DollarSign, Users } from 'lucide-react'
+import { ArrowLeft, MapPin, Calendar, Users } from 'lucide-react'
 
 const TicketDetails = ({ ticket, onBack }) => {
   if (!ticket) return null
@@ -46,7 +46,7 @@ const TicketDetails = ({ ticket, onBack }) => {
           </div>
           
           <div className="info-item">
-            <DollarSign size={16} />
+            <span style={{ fontSize: '16px' }}>₱</span>
             <div>
               <label>Budget</label>
               <span>₱{ticket.budget?.toLocaleString()}</span>

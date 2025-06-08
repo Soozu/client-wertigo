@@ -21,16 +21,16 @@ const TravelPlanner = () => {
     addDestination,
     removeDestination,
     calculateRoute,
-    loadSavedTrip,
-    geocodeDestination
+    loadTripFromSession,
+    geocodeLocation
   } = useTrip()
 
   // Load saved trip on component mount
   useEffect(() => {
     if (isConnected && !sessionLoading) {
-      loadSavedTrip()
+      loadTripFromSession()
     }
-  }, [isConnected, sessionLoading, loadSavedTrip])
+  }, [isConnected, sessionLoading, loadTripFromSession])
 
   // Auto-calculate route when destinations change
   useEffect(() => {
@@ -61,10 +61,29 @@ const TravelPlanner = () => {
           travelers: 1,
           destinations: []
         })
-  }
+      }
 
       // Geocode destination if it doesn't have coordinates
-      const destinationWithCoords = await geocodeDestination(destination)
+      let destinationWithCoords = destination;
+      if (!destination.latitude || !destination.longitude) {
+        try {
+          const locationQuery = destination.city || destination.name || destination.location;
+          const geocodeResults = await geocodeLocation(locationQuery);
+          
+          if (geocodeResults && geocodeResults.length > 0) {
+            const firstResult = geocodeResults[0];
+            destinationWithCoords = {
+              ...destination,
+              latitude: firstResult.lat,
+              longitude: firstResult.lon,
+              display_name: firstResult.display_name
+            };
+          }
+        } catch (geocodeError) {
+          console.warn('Failed to geocode destination:', geocodeError);
+          // Continue with original destination even if geocoding fails
+        }
+      }
       
       // Add to trip
       await addDestination(destinationWithCoords)
@@ -72,7 +91,7 @@ const TravelPlanner = () => {
       // Show on map if coordinates are available
       if (destinationWithCoords.latitude && destinationWithCoords.longitude && mapRef.current) {
         mapRef.current.setView([destinationWithCoords.latitude, destinationWithCoords.longitude], 13)
-  }
+      }
     } catch (error) {
       console.error('Failed to add destination:', error)
     }
@@ -176,16 +195,7 @@ const TravelPlanner = () => {
                 >
                   ➕ Create New Trip
                 </button>
-              ) : (
-                <button 
-                  className="create-trip-btn"
-                  onClick={handleShareTrip}
-                  disabled={!currentTrip?.id}
-                  title="Share your trip with others"
-                >
-                  🔗 Share Trip
-                </button>
-              )}
+              ) : null}
             </div>
             
             {currentTrip ? (

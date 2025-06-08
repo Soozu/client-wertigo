@@ -19,15 +19,15 @@ export const useTrip = () => {
       if (response.success && response.trip) {
         setCurrentTrip(response.trip);
       
-      // Store trip ID in session storage for persistence
-      sessionStorage.setItem('current_trip_id', response.trip_id);
+        // Store trip ID in session storage for persistence
+        sessionStorage.setItem('current_trip_id', response.trip.id);
         
         // Set route data if available
         if (response.trip.route_data) {
           setRouteData(response.trip.route_data);
         }
       
-      return response;
+        return response;
       } else {
         throw new Error(response.message || 'Failed to create trip');
       }
@@ -50,7 +50,7 @@ export const useTrip = () => {
       
       if (response.success && response.trip) {
         setCurrentTrip(response.trip);
-      sessionStorage.setItem('current_trip_id', tripId);
+        sessionStorage.setItem('current_trip_id', tripId);
         
         // Set route data if available
         if (response.trip.route_data) {
@@ -90,7 +90,7 @@ export const useTrip = () => {
           setRouteData(response.trip.route_data);
         }
         
-      return response;
+        return response;
       } else {
         throw new Error(response.message || 'Failed to update trip');
       }
@@ -152,7 +152,7 @@ export const useTrip = () => {
           }
         }
         
-      return destinationId;
+        return destinationId;
       } else {
         throw new Error(response.message || 'Failed to remove destination');
       }
@@ -162,7 +162,7 @@ export const useTrip = () => {
     }
   }, [currentTrip]);
 
-  // Calculate route between destinations
+  // Calculate route between destinations (Python backend)
   const calculateRoute = useCallback(async (destinations = null) => {
     const routeDestinations = destinations || currentTrip?.destinations;
     
@@ -177,8 +177,8 @@ export const useTrip = () => {
       const points = routeDestinations
         .filter(dest => dest.latitude && dest.longitude)
         .map(dest => ({
-          lat: dest.latitude,
-          lng: dest.longitude,
+          lat: parseFloat(dest.latitude),
+          lng: parseFloat(dest.longitude),
           name: dest.name
         }));
 
@@ -186,14 +186,25 @@ export const useTrip = () => {
         throw new Error('Not enough destinations with coordinates');
       }
 
-      // Include trip_id in route calculation to save to database
-      const routeData = {
-        points: points,
-        trip_id: currentTrip?.id
-      };
-
-      const route = await routeAPI.calculateRoute(routeData);
+      // Calculate route using Python backend
+      const route = await routeAPI.calculateRoute(points);
       setRouteData(route);
+      
+      // Save route to trip in Express backend if we have a current trip
+      if (currentTrip?.id && route) {
+        try {
+          await tripAPI.saveRouteToTrip(currentTrip.id, {
+            routeData: route,
+            distanceKm: route.distance_km,
+            timeMinutes: route.time_min,
+            routeSource: route.source || 'python-backend'
+          });
+        } catch (saveError) {
+          console.warn('Failed to save route to trip:', saveError);
+          // Don't throw here, route calculation was successful
+        }
+      }
+      
       return route;
     } catch (err) {
       console.error('Failed to calculate route:', err);
@@ -202,27 +213,16 @@ export const useTrip = () => {
     } finally {
       setRouteLoading(false);
     }
-  }, [currentTrip?.destinations, currentTrip?.id]);
+  }, [currentTrip]);
 
-  // Geocode a location and add coordinates to destination
-  const geocodeDestination = useCallback(async (destination) => {
+  // Geocode a location (Python backend)
+  const geocodeLocation = useCallback(async (locationQuery) => {
     try {
-      const locationQuery = `${destination.name}, ${destination.city || ''}`;
       const results = await geocodingAPI.geocodeLocation(locationQuery);
-      
-      if (results && results.length > 0) {
-        const { lat, lng } = results[0].point;
-        return {
-          ...destination,
-          latitude: lat,
-          longitude: lng
-        };
-      }
-      
-      return destination;
+      return results;
     } catch (err) {
-      console.error('Failed to geocode destination:', err);
-      return destination; // Return original destination if geocoding fails
+      console.error('Failed to geocode location:', err);
+      throw err;
     }
   }, []);
 
@@ -234,14 +234,14 @@ export const useTrip = () => {
     sessionStorage.removeItem('current_trip_id');
   }, []);
 
-  // Load trip from session storage on page refresh
-  const loadSavedTrip = useCallback(async () => {
-    const savedTripId = sessionStorage.getItem('current_trip_id');
-    if (savedTripId) {
+  // Load trip from session storage
+  const loadTripFromSession = useCallback(async () => {
+    const tripId = sessionStorage.getItem('current_trip_id');
+    if (tripId) {
       try {
-        await loadTrip(savedTripId);
-      } catch (err) {
-        console.log('Failed to load saved trip, clearing session');
+        await loadTrip(tripId);
+      } catch (error) {
+        console.warn('Failed to load trip from session:', error);
         sessionStorage.removeItem('current_trip_id');
       }
     }
@@ -251,7 +251,6 @@ export const useTrip = () => {
   const getUserTrips = useCallback(async () => {
     try {
       const response = await tripAPI.getUserTrips();
-      
       if (response.success) {
         return response.trips;
       } else {
@@ -271,16 +270,22 @@ export const useTrip = () => {
     routeData,
     routeLoading,
     
-    // Actions
+    // Trip operations
     createTrip,
     loadTrip,
     updateTrip,
+    clearTrip,
+    loadTripFromSession,
+    getUserTrips,
+    
+    // Destination operations
     addDestination,
     removeDestination,
+    
+    // Route operations
     calculateRoute,
-    geocodeDestination,
-    clearTrip,
-    loadSavedTrip,
-    getUserTrips
+    
+    // Utility operations
+    geocodeLocation
   };
 }; 

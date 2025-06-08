@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react'
-import { MapPin, Calendar, Users, DollarSign, Clock, Route, ArrowLeft, Star } from 'lucide-react'
+import { MapPin, Calendar, Users, Clock, Route, ArrowLeft, Star } from 'lucide-react'
+import TripMap from './TripMap'
 import './TripDetails.css'
+import './TripMap.css'
 
 const TripDetails = ({ trip, onBack }) => {
   const [reviews, setReviews] = useState([])
@@ -22,7 +24,14 @@ const TripDetails = ({ trip, onBack }) => {
     })
   }
 
-  const totalBudget = destinations.reduce((sum, dest) => sum + (dest.budget || 0), 0)
+  // Calculate total budget from destinations
+  const destinationsBudget = destinations.reduce((sum, dest) => {
+    const budget = parseFloat(dest.budget) || 0
+    return sum + budget
+  }, 0)
+
+  // Use destinations budget if available, otherwise fall back to trip budget
+  const totalBudget = destinationsBudget > 0 ? destinationsBudget : (parseFloat(trip.budget) || 0)
 
   // Load reviews from localStorage
   useEffect(() => {
@@ -120,8 +129,8 @@ const TripDetails = ({ trip, onBack }) => {
             <Calendar size={24} />
           </div>
           <div className="info-content">
-            <h3>Travel Dates</h3>
-            <p>{formatDate(trip.start_date)} - {formatDate(trip.end_date)}</p>
+            <h3>Save Date</h3>
+            <p>{formatDate(tracker_info?.save_date)}</p>
           </div>
         </div>
 
@@ -137,11 +146,11 @@ const TripDetails = ({ trip, onBack }) => {
 
         <div className="trip-info-card">
           <div className="info-icon">
-            <DollarSign size={24} />
+            <span style={{ fontSize: '24px' }}>₱</span>
           </div>
           <div className="info-content">
             <h3>Budget</h3>
-            <p>₱{(trip.budget || totalBudget).toLocaleString()}</p>
+            <p>₱{totalBudget.toLocaleString()}</p>
           </div>
         </div>
       </div>
@@ -153,17 +162,33 @@ const TripDetails = ({ trip, onBack }) => {
           <div className="route-stats">
             <div className="route-stat">
               <Route size={20} />
-              <span>{routeData.distance_km} km total distance</span>
+              <span>{routeData.distanceKm || 0} km total distance</span>
             </div>
             <div className="route-stat">
               <Clock size={20} />
-              <span>{Math.round(routeData.time_min)} min estimated time</span>
+              <span>{Math.round(routeData.timeMin || 0)} min estimated time</span>
             </div>
             <div className="route-stat">
               <MapPin size={20} />
               <span>{destinations.length} stops planned</span>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Interactive Map */}
+      {destinations.length > 0 && (
+        <div className="map-section">
+          <h2>🗺️ Trip Map & Route</h2>
+          <TripMap 
+            destinations={destinations}
+            routeData={routeData}
+            trackerId={tracker_info?.tracker_id}
+            onRouteCalculated={(route) => {
+              // Update route data if needed
+              console.log('Route calculated in TripDetails:', route)
+            }}
+          />
         </div>
       )}
 
@@ -209,10 +234,10 @@ const TripDetails = ({ trip, onBack }) => {
                   )}
                   
                   <div className="destination-details">
-                    {destination.budget && destination.budget > 0 && (
+                    {destination.budget && parseFloat(destination.budget) > 0 && (
                       <div className="detail-item">
-                        <DollarSign size={16} />
-                        <span>₱{destination.budget.toLocaleString()}</span>
+                        <span style={{ fontSize: '16px', color: '#27ae60' }}>₱</span>
+                        <span>{parseFloat(destination.budget).toLocaleString()}</span>
                       </div>
                     )}
                     
@@ -236,7 +261,7 @@ const TripDetails = ({ trip, onBack }) => {
                   <div className="route-segment">
                     <div className="route-arrow">↓</div>
                     <span className="route-segment-text">
-                      Next stop: ~{Math.round(routeData.time_min / (destinations.length - 1))} min
+                      Next stop: ~{Math.round((routeData.timeMin || 0) / (destinations.length - 1))} min
                     </span>
                   </div>
                 )}
@@ -261,12 +286,12 @@ const TripDetails = ({ trip, onBack }) => {
           {routeData && (
             <>
               <div className="summary-item">
-                <div className="summary-value">{routeData.distance_km} km</div>
+                <div className="summary-value">{routeData.distanceKm || 0} km</div>
                 <div className="summary-label">Total Distance</div>
               </div>
               <div className="summary-item">
                 <div className="summary-value">
-                  {Math.round(routeData.time_min / 60)}h {routeData.time_min % 60}m
+                  {Math.round((routeData.timeMin || 0) / 60)}h {(routeData.timeMin || 0) % 60}m
                 </div>
                 <div className="summary-label">Travel Time</div>
               </div>

@@ -1,12 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { Star, ChevronLeft, ChevronRight, Quote, MapPin, Calendar } from 'lucide-react';
+import { reviewsAPI } from '../services/api';
 import './Ratings.css';
 
 const Ratings = () => {
   const [currentReview, setCurrentReview] = useState(0);
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
+  const [reviews, setReviews] = useState([]);
+  const [overallStats, setOverallStats] = useState({});
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  const reviews = [
+  // Mock data as fallback
+  const mockReviews = [
     {
       id: 1,
       name: "Maria Santos",
@@ -69,7 +75,7 @@ const Ratings = () => {
     }
   ];
 
-  const overallStats = {
+  const mockStats = {
     totalReviews: 2847,
     averageRating: 4.8,
     ratingDistribution: [
@@ -81,9 +87,42 @@ const Ratings = () => {
     ]
   };
 
+  // Fetch reviews and stats from backend
+  useEffect(() => {
+    const fetchReviewsData = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        // Try to fetch platform stats and reviews from backend
+        const response = await reviewsAPI.getPlatformStats(5);
+        
+        if (response.success && response.reviews && response.stats) {
+          // Use backend data
+          setReviews(response.reviews);
+          setOverallStats(response.stats);
+          console.log('✅ Loaded reviews from backend:', response.reviews.length, 'reviews');
+        } else {
+          throw new Error('Invalid response format');
+        }
+      } catch (error) {
+        console.warn('⚠️ Failed to load reviews from backend, using mock data:', error.message);
+        setError('Using demo data - backend not available');
+        
+        // Fallback to mock data
+        setReviews(mockReviews);
+        setOverallStats(mockStats);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchReviewsData();
+  }, []);
+
   // Auto-play reviews
   useEffect(() => {
-    if (!isAutoPlaying) return;
+    if (!isAutoPlaying || reviews.length === 0) return;
 
     const interval = setInterval(() => {
       setCurrentReview((prev) => (prev + 1) % reviews.length);
@@ -122,6 +161,30 @@ const Ratings = () => {
     setCurrentReview(index);
   };
 
+  // Show loading state
+  if (loading) {
+    return (
+      <section className="ratings-section">
+        <div className="container">
+          <div className="ratings-header">
+            <h2 className="section-title">
+              What Our <span>Travelers</span> Say
+            </h2>
+            <p className="section-subtitle">Loading reviews...</p>
+          </div>
+          <div className="loading-spinner" style={{ textAlign: 'center', padding: '2rem' }}>
+            <div style={{ display: 'inline-block', width: '40px', height: '40px', border: '4px solid #f3f3f3', borderTop: '4px solid #667eea', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  // Don't render if no reviews available
+  if (!reviews || reviews.length === 0) {
+    return null;
+  }
+
   return (
     <section className="ratings-section">
       <div className="container">
@@ -131,23 +194,24 @@ const Ratings = () => {
           </h2>
           <p className="section-subtitle">
             Discover why thousands of Filipino travelers trust WerTigo for their adventures
+            {error && <span style={{ color: '#ff6b6b', fontSize: '0.9em', display: 'block', marginTop: '0.5rem' }}>({error})</span>}
           </p>
         </div>
 
         {/* Overall Rating Stats */}
         <div className="rating-stats">
           <div className="overall-rating">
-            <div className="rating-number">{overallStats.averageRating}</div>
+            <div className="rating-number">{overallStats.averageRating || 0}</div>
             <div className="rating-stars">
-              {renderStars(Math.floor(overallStats.averageRating), 24)}
+              {renderStars(Math.floor(overallStats.averageRating || 0), 24)}
             </div>
             <div className="total-reviews">
-              Based on {overallStats.totalReviews.toLocaleString()} reviews
+              Based on {(overallStats.totalReviews || 0).toLocaleString()} reviews
             </div>
           </div>
 
           <div className="rating-breakdown">
-            {overallStats.ratingDistribution.map((item) => (
+            {(overallStats.ratingDistribution || []).map((item) => (
               <div key={item.stars} className="rating-bar">
                 <span className="star-label">{item.stars}</span>
                 <Star size={16} className="star filled" fill="#ffd700" />
@@ -243,11 +307,11 @@ const Ratings = () => {
         {/* Trust Indicators */}
         <div className="trust-indicators">
           <div className="trust-item">
-            <div className="trust-number">2.8K+</div>
+            <div className="trust-number">{Math.floor((overallStats.totalReviews || 2800) / 1000 * 10) / 10}K+</div>
             <div className="trust-label">Happy Travelers</div>
           </div>
           <div className="trust-item">
-            <div className="trust-number">4.8</div>
+            <div className="trust-number">{overallStats.averageRating || 4.8}</div>
             <div className="trust-label">Average Rating</div>
           </div>
           <div className="trust-item">

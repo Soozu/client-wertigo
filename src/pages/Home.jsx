@@ -1,15 +1,26 @@
 import React, { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import { reviewsAPI } from '../services/api'
 import Header from '../components/Header'
-import Ratings from '../components/Ratings'
+import ReviewSubmission from '../components/ReviewSubmission'
+import { Star, ChevronLeft, ChevronRight, Quote, MapPin, Calendar } from 'lucide-react'
 import './Home.css'
 
 const Home = () => {
+  const navigate = useNavigate()
   const [currentSlide, setCurrentSlide] = useState(0)
   const [typedText, setTypedText] = useState('')
   const [currentDestinationIndex, setCurrentDestinationIndex] = useState(0)
   const [isDeleting, setIsDeleting] = useState(false)
+  const [isReviewModalOpen, setIsReviewModalOpen] = useState(false)
+  const [currentReview, setCurrentReview] = useState(0)
+  const [isAutoPlaying, setIsAutoPlaying] = useState(true)
+  const [reviews, setReviews] = useState([])
+  const [overallStats, setOverallStats] = useState({})
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false)
   const { isAuthenticated, user } = useAuth()
   
   const destinations = ['Bohol', 'Boracay', 'El Nido']
@@ -36,6 +47,98 @@ const Home = () => {
       description: 'I am Matthew Daniel A. Sadaba, a 4th year Computer Science student from Cavite State University - Imus campus. I love to fiddle around technologies that\'s why I chose this course, to explore more things that I didn\'t get a chance to learn. I am that kind of person who wants to learn something new especially that is aligned with my course.'
     }
   ]
+
+  // Mock data as fallback
+  const mockReviews = [
+    {
+      id: 1,
+      name: "Maria Santos",
+      location: "Manila, Philippines",
+      avatar: "https://ui-avatars.com/api/?name=Maria+Santos&background=1da1f2&color=fff&size=150",
+      rating: 5,
+      title: "Amazing Experience!",
+      review: "WerTigo helped me plan the perfect trip to Palawan! The AI recommendations were spot-on and I discovered hidden gems I never would have found otherwise. Highly recommended!",
+      destination: "Palawan",
+      tripDate: "November 2023",
+      verified: true
+    },
+    {
+      id: 2,
+      name: "John Dela Cruz",
+      location: "Cebu, Philippines",
+      avatar: "https://ui-avatars.com/api/?name=John+Dela+Cruz&background=2e7d32&color=fff&size=150",
+      rating: 4,
+      title: "Great Trip Planning",
+      review: "The platform made it so easy to organize my family vacation to Bohol. The route optimization saved us so much time, and the kids loved all the activities suggested by the AI.",
+      destination: "Bohol",
+      tripDate: "October 2023",
+      verified: true
+    },
+    {
+      id: 3,
+      name: "Sarah Johnson",
+      location: "Davao, Philippines",
+      avatar: "https://ui-avatars.com/api/?name=Sarah+Johnson&background=e91e63&color=fff&size=150",
+      rating: 5,
+      title: "Perfect for Solo Travel",
+      review: "As a solo female traveler, WerTigo gave me the confidence to explore Siargao safely. The detailed itineraries and local insights were invaluable!",
+      destination: "Siargao",
+      tripDate: "December 2023",
+      verified: true
+    }
+  ];
+
+  const mockStats = {
+    totalReviews: 1247,
+    averageRating: 4.8,
+    ratingDistribution: [
+      { stars: 5, count: 892, percentage: 72 },
+      { stars: 4, count: 249, percentage: 20 },
+      { stars: 3, count: 75, percentage: 6 },
+      { stars: 2, count: 19, percentage: 1 },
+      { stars: 1, count: 12, percentage: 1 }
+    ]
+  };
+
+  // Fetch reviews data
+  useEffect(() => {
+    const fetchReviews = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        
+        const result = await reviewsAPI.getPlatformStats(6); // Get 6 reviews for display
+        
+        if (result.success) {
+          setReviews(result.reviews || []);
+          setOverallStats(result.stats || {});
+        } else {
+          throw new Error('Failed to fetch reviews');
+        }
+      } catch (err) {
+        console.error('Error fetching reviews:', err);
+        setError(err.message);
+        // Use mock data as fallback
+        setReviews(mockReviews);
+        setOverallStats(mockStats);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchReviews();
+  }, []);
+
+  // Auto-play reviews carousel
+  useEffect(() => {
+    if (!isAutoPlaying || reviews.length === 0) return;
+
+    const interval = setInterval(() => {
+      setCurrentReview((prev) => (prev + 1) % reviews.length);
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [isAutoPlaying, reviews.length]);
 
   // Slideshow effect
   useEffect(() => {
@@ -73,6 +176,58 @@ const Home = () => {
 
     return () => clearTimeout(timeout)
   }, [typedText, isDeleting, currentDestinationIndex, destinations])
+
+  const handleReviewSubmitted = async (newReview) => {
+    console.log('New review submitted:', newReview);
+    
+    // Refresh reviews data after submission
+    try {
+      const result = await reviewsAPI.getPlatformStats(6);
+      if (result.success) {
+        setReviews(result.reviews || []);
+        setOverallStats(result.stats || {});
+      }
+    } catch (err) {
+      console.error('Error refreshing reviews:', err);
+    }
+  };
+
+  const nextReview = () => {
+    if (reviews.length === 0) return;
+    setCurrentReview((prev) => (prev + 1) % reviews.length);
+    setIsAutoPlaying(false);
+  };
+
+  const prevReview = () => {
+    if (reviews.length === 0) return;
+    setCurrentReview((prev) => (prev - 1 + reviews.length) % reviews.length);
+    setIsAutoPlaying(false);
+  };
+
+  const handleShareExperienceClick = () => {
+    if (!isAuthenticated) {
+      setShowLoginPrompt(true)
+      return;
+    }
+    setIsReviewModalOpen(true);
+  };
+
+  const handleLoginRedirect = () => {
+    setShowLoginPrompt(false)
+    navigate('/login')
+  };
+
+  const renderStars = (rating) => {
+    return Array.from({ length: 5 }, (_, index) => (
+      <Star
+        key={index}
+        size={20}
+        className={`star ${index < rating ? 'filled' : 'empty'}`}
+        fill={index < rating ? '#ffd700' : 'none'}
+        stroke={index < rating ? '#ffd700' : '#ddd'}
+      />
+    ));
+  };
 
   return (
     <div className="home-page">
@@ -141,8 +296,161 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Ratings Section */}
-      <Ratings />
+      {/* Reviews Section */}
+      <section className="ratings-section">
+        <div className="container">
+          <div className="ratings-header">
+            <h2 className="section-title">What Our <span>Travelers</span> Say</h2>
+            <button 
+              className="share-experience-btn"
+              onClick={handleShareExperienceClick}
+            >
+              {isAuthenticated ? 'Share Your Experience' : 'Login to Share Experience'}
+            </button>
+          </div>
+
+          {loading ? (
+            <div className="reviews-loading">
+              <div className="loading-spinner"></div>
+              <p>Loading reviews...</p>
+            </div>
+          ) : error && reviews.length === 0 ? (
+            <div className="reviews-error">
+              <p>Unable to load reviews. Please try again later.</p>
+            </div>
+          ) : (
+            <div className="reviews-container">
+              {/* Overall Statistics */}
+              <div className="reviews-stats">
+                <div className="stats-overview">
+                  <div className="overall-rating">
+                    <div className="rating-number">{overallStats.averageRating || 4.8}</div>
+                    <div className="rating-stars">
+                      {renderStars(Math.round(overallStats.averageRating || 4.8))}
+                    </div>
+                    <div className="rating-text">
+                      Based on {overallStats.totalReviews || 0} reviews
+                    </div>
+                  </div>
+                  
+                  <div className="rating-breakdown">
+                    {(overallStats.ratingDistribution || mockStats.ratingDistribution).map((item) => (
+                      <div key={item.stars} className="rating-bar">
+                        <span className="stars">{item.stars} ★</span>
+                        <div className="bar">
+                          <div 
+                            className="fill" 
+                            style={{ width: `${item.percentage}%` }}
+                          ></div>
+                        </div>
+                        <span className="percentage">{item.percentage}%</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Reviews Carousel */}
+              {reviews.length > 0 && (
+                <div className="reviews-carousel">
+                  <div className="carousel-container">
+                    {reviews.length > 1 && (
+                      <>
+                        <button 
+                          className="carousel-btn prev" 
+                          onClick={prevReview}
+                          aria-label="Previous review"
+                          disabled={reviews.length <= 1}
+                        >
+                          <ChevronLeft size={24} />
+                        </button>
+
+                        <button 
+                          className="carousel-btn next" 
+                          onClick={nextReview}
+                          aria-label="Next review"
+                          disabled={reviews.length <= 1}
+                        >
+                          <ChevronRight size={24} />
+                        </button>
+                      </>
+                    )}
+
+                    <div className="review-cards">
+                      {reviews.map((review, index) => (
+                        <div
+                          key={review.id}
+                          className={`review-card ${index === currentReview ? 'active' : ''}`}
+                          style={{
+                            transform: `translateX(${(index - currentReview) * 100}%)`,
+                            opacity: index === currentReview ? 1 : 0.7
+                          }}
+                        >
+                          <div className="review-header">
+                            <img 
+                              src={review.avatar} 
+                              alt={review.name}
+                              className="reviewer-avatar"
+                            />
+                            <div className="reviewer-info">
+                              <h4 className="reviewer-name">{review.name}</h4>
+                              <div className="reviewer-location">
+                                <MapPin size={14} />
+                                {review.location}
+                              </div>
+                              {review.verified && (
+                                <span className="verified-badge">✓ Verified Traveler</span>
+                              )}
+                            </div>
+                          </div>
+
+                          <div className="review-rating">
+                            {renderStars(review.rating)}
+                            <span className="review-title">{review.title}</span>
+                          </div>
+
+                          <div className="review-content">
+                            <Quote className="quote-icon" size={20} />
+                            <p>{review.review}</p>
+                          </div>
+
+                          <div className="review-footer">
+                            <div className="trip-info">
+                              <MapPin size={14} />
+                              <span>Visited {review.destination}</span>
+                            </div>
+                            <div className="trip-date">
+                              <Calendar size={14} />
+                              <span>{review.tripDate}</span>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Carousel Indicators */}
+                  {reviews.length > 1 && (
+                    <div className="carousel-indicators">
+                      {reviews.map((_, index) => (
+                        <button
+                          key={index}
+                          className={`indicator ${index === currentReview ? 'active' : ''}`}
+                          onClick={() => {
+                            setCurrentReview(index);
+                            setIsAutoPlaying(false);
+                          }}
+                          aria-label={`Go to review ${index + 1}`}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </section>
 
       {/* Call to Action Section for Unauthenticated Users */}
       {!isAuthenticated && (
@@ -162,6 +470,49 @@ const Home = () => {
             </div>
           </div>
         </section>
+      )}
+
+      {/* Login Prompt Modal */}
+      {showLoginPrompt && (
+        <div className="review-modal-overlay">
+          <div className="review-modal login-prompt-modal">
+            <div className="review-modal-header">
+              <h2>Login Required</h2>
+              <button 
+                className="close-btn"
+                onClick={() => setShowLoginPrompt(false)}
+              >
+                ×
+              </button>
+            </div>
+            <div className="login-prompt-content">
+              <p>You need to be logged in to share your travel experience and help other travelers!</p>
+              <div className="login-prompt-buttons">
+                <button 
+                  className="btn cta-primary"
+                  onClick={handleLoginRedirect}
+                >
+                  Go to Login
+                </button>
+                <button 
+                  className="btn cta-secondary"
+                  onClick={() => setShowLoginPrompt(false)}
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Review Submission Modal */}
+      {isAuthenticated && (
+        <ReviewSubmission 
+          isOpen={isReviewModalOpen}
+          onClose={() => setIsReviewModalOpen(false)}
+          onReviewSubmitted={handleReviewSubmitted}
+        />
       )}
 
       {/* Footer */}

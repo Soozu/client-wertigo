@@ -67,8 +67,6 @@ const Login = () => {
 
     if (!formData.password.trim()) {
       errors.password = 'Password is required';
-    } else if (formData.password.length < 6) {
-      errors.password = 'Password must be at least 6 characters';
     }
 
     if (!isLoginMode) {
@@ -80,6 +78,11 @@ const Login = () => {
         errors.confirmPassword = 'Please confirm your password';
       } else if (formData.password !== formData.confirmPassword) {
         errors.confirmPassword = 'Passwords do not match';
+      }
+
+      // Only enforce password length for registration
+      if (formData.password.trim() && formData.password.length < 6) {
+        errors.password = 'Password must be at least 6 characters';
       }
     }
 
@@ -108,6 +111,28 @@ const Login = () => {
       }
     } catch (error) {
       console.error('Authentication error:', error);
+      
+      // Handle specific authentication errors
+      if (isLoginMode) {
+        // For login errors, check if it's invalid credentials
+        if (error.message.toLowerCase().includes('invalid') || 
+            error.message.toLowerCase().includes('incorrect') ||
+            error.message.toLowerCase().includes('wrong') ||
+            error.message.toLowerCase().includes('not found')) {
+          setFormErrors({
+            email: 'Invalid email or password',
+            password: 'Invalid email or password'
+          });
+        }
+      } else {
+        // For registration errors, check if email already exists
+        if (error.message.toLowerCase().includes('email') && 
+            error.message.toLowerCase().includes('exists')) {
+          setFormErrors({
+            email: 'An account with this email already exists'
+          });
+        }
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -155,20 +180,6 @@ const Login = () => {
         <div className="background-overlay" />
       </div>
 
-      {/* Header */}
-      <header className="login-header">
-        <Link to="/" className="logo-link">
-          <div className="logo">
-            <Plane className="logo-icon" />
-            <span className="logo-text">WerTigo</span>
-          </div>
-        </Link>
-        <nav className="header-nav">
-          <Link to="/" className="nav-link">Home</Link>
-          <Link to="/about" className="nav-link">About</Link>
-        </nav>
-      </header>
-
       {/* Main Content */}
       <main className="login-main">
         <div className="login-container">
@@ -207,6 +218,13 @@ const Login = () => {
                   <span className="destination-tag">Baguio</span>
                   <span className="destination-tag">Siargao</span>
                 </div>
+              </div>
+
+              {/* Back to Home Link */}
+              <div className="back-to-home">
+                <Link to="/" className="home-link">
+                  ← Back to Home
+                </Link>
               </div>
             </div>
           </div>
@@ -379,8 +397,6 @@ const Login = () => {
                   {isLoginMode ? 'Sign Up' : 'Sign In'}
                 </button>
               </div>
-
-
             </div>
           </div>
         </div>

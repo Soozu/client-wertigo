@@ -6,6 +6,7 @@ import TripPlanner from '../components/TripPlanner'
 import { useTrip } from '../hooks/useTrip'
 import { useSession } from '../context/SessionContext'
 import './TravelPlanner.css'
+import { ExclamationTriangleIcon } from '@heroicons/react/24/outline'
 
 const TravelPlanner = () => {
   const mapRef = useRef(null)
@@ -163,8 +164,13 @@ const TravelPlanner = () => {
       <main className="planner-main">
         {/* Connection Status */}
         {!isConnected && !sessionLoading && (
-          <div className="connection-banner">
-            ⚠️ Backend not connected. Please ensure the Flask server is running on localhost:5000
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+            <div className="flex items-center">
+              <ExclamationTriangleIcon className="h-5 w-5 text-yellow-400 mr-2" />
+              <p className="text-sm text-yellow-800">
+                ⚠️ Backend not connected. Please ensure the Python server is running on the deployed backend.
+              </p>
+            </div>
           </div>
         )}
 

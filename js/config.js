@@ -1,6 +1,6 @@
 // API Configuration for WerTigo Trip Planner
 const API_CONFIG = {
-  BASE_URL: 'http://localhost:5000',
+  BASE_URL: import.meta?.env?.VITE_PYTHON_API_URL || 'https://server-python-x2au.onrender.com'
   ENDPOINTS: {
     HEALTH: '/api/health',
     CREATE_SESSION: '/api/create-session',

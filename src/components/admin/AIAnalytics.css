@@ -1,0 +1,47 @@
+/* AIAnalytics Component Styles */
+
+/* Tables */
+.queries-table, .interactions-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.queries-table th, .interactions-table th {
+  text-align: left;
+  padding: 0.5rem;
+  background-color: rgba(102, 126, 234, 0.1);
+  color: #333;
+  font-weight: 600;
+}
+
+.queries-table td, .interactions-table td {
+  padding: 0.5rem;
+  border-bottom: 1px solid #eee;
+}
+
+.queries-table tr:hover, .interactions-table tr:hover {
+  background-color: rgba(102, 126, 234, 0.05);
+}
+
+.popular-queries, .recent-interactions {
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+/* Make sure scrollbars look nice */
+.popular-queries::-webkit-scrollbar, 
+.recent-interactions::-webkit-scrollbar {
+  width: 6px;
+}
+
+.popular-queries::-webkit-scrollbar-thumb, 
+.recent-interactions::-webkit-scrollbar-thumb {
+  background-color: rgba(102, 126, 234, 0.3);
+  border-radius: 3px;
+}
+
+.popular-queries::-webkit-scrollbar-track, 
+.recent-interactions::-webkit-scrollbar-track {
+  background-color: rgba(0, 0, 0, 0.05);
+} 

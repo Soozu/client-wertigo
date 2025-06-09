@@ -16,7 +16,7 @@ I can help you discover amazing destinations across Cavite!
 
 Try asking me:
 • "Show me beautiful beaches in Ternate"
-• "Find restaurants in Tagaytay"
+• "Restaurants in Tagaytay"
 • "Historical Sites in Kawit"
 • "Hidden gem cafes in Silang"
 

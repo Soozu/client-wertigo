@@ -20,7 +20,7 @@ Try asking me:
 • "Historical Sites in Kawit"
 • "Hidden gem cafes in Silang"
 
-What would you like to explore today?`,
+Where would you like to explore today?`,
       timestamp: new Date(),
       isWelcome: true
     }

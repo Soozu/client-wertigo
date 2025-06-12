@@ -1,9 +1,8 @@
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useRef, useState, useMemo, useCallback } from 'react'
 import { MapContainer, TileLayer, Marker, Popup, useMap, Polyline } from 'react-leaflet'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import './MapComponent.css'
-import 'leaflet-arrowheads'
 
 // Fix for default markers in React Leaflet
 delete L.Icon.Default.prototype._getIconUrl
@@ -51,14 +50,16 @@ const createNumberedIcon = (number, isStart = false, isEnd = false) => {
 // Route Component
 const RouteLayer = ({ routeData }) => {
   const map = useMap();
-  const polylineRef = useRef(null);
   const [routeInfo, setRouteInfo] = useState(null);
   const [showSteps, setShowSteps] = useState(false);
   
   if (!routeData || !routeData.points || routeData.points.length < 2) return null
   
   // Transform route points for Polyline (convert from [lng, lat] to [lat, lng])
-  const routePoints = routeData.points.map(point => [point[1], point[0]])
+  const routePoints = useMemo(() => 
+    routeData.points.map(point => [point[1], point[0]]), 
+    [routeData.points]
+  );
   
   // Get the route type for styling
   const routeType = routeData.source || 'direct'
@@ -67,12 +68,14 @@ const RouteLayer = ({ routeData }) => {
   
   // Store route data on first render
   useEffect(() => {
-    setRouteInfo({
+    const newRouteInfo = {
       distance: routeData.distance_km,
       time: routeData.time_min,
       source: routeType,
       hasSteps: hasSteps
-    });
+    };
+    
+    setRouteInfo(newRouteInfo);
     
     // Center the map on the route when it's loaded
     if (map && routePoints.length > 0) {
@@ -86,108 +89,71 @@ const RouteLayer = ({ routeData }) => {
         console.error('Error fitting bounds to route:', e);
       }
     }
-    
-    // Add arrowheads to polyline after it's rendered
-    if (polylineRef.current && isRoadRoute) {
-      const polyline = polylineRef.current.getElement();
-      if (polyline && polyline.arrowheads) {
-        // Remove any existing arrowheads first
-        polyline.arrowheads(false);
-      }
-      
-      // Add new arrowheads
-      if (polyline) {
-        try {
-          polyline.arrowheads({
-            frequency: '100px',
-            size: '10px',
-            fill: true,
-            yawn: 40
-          });
-        } catch (e) {
-          console.error('Error adding arrowheads:', e);
-        }
-      }
-    }
-  }, [map, routeData, routePoints, routeType, hasSteps, isRoadRoute]);
+  }, [map, routeData.distance_km, routeData.time_min, routeType, hasSteps, routePoints]);
   
   // Toggle steps visibility
-  const toggleSteps = () => {
+  const toggleSteps = useCallback(() => {
     setShowSteps(!showSteps);
-  };
-  
-  // Function to decode path for Google Maps encoded polyline
-  const decodePolyline = (encoded) => {
-    if (!encoded) return [];
-    
-    const poly = [];
-    let index = 0, lat = 0, lng = 0;
-    
-    while (index < encoded.length) {
-      let b, shift = 0, result = 0;
-      
-      do {
-        b = encoded.charCodeAt(index++) - 63;
-        result |= (b & 0x1f) << shift;
-        shift += 5;
-      } while (b >= 0x20);
-      
-      const dlat = ((result & 1) ? ~(result >> 1) : (result >> 1));
-      lat += dlat;
-      
-      shift = 0;
-      result = 0;
-      
-      do {
-        b = encoded.charCodeAt(index++) - 63;
-        result |= (b & 0x1f) << shift;
-        shift += 5;
-      } while (b >= 0x20);
-      
-      const dlng = ((result & 1) ? ~(result >> 1) : (result >> 1));
-      lng += dlng;
-      
-      poly.push([lat / 1e5, lng / 1e5]);
-    }
-    
-    return poly;
-  };
+  }, [showSteps]);
   
   // Apply different styling for road vs direct routes
-  const polylineOptions = {
+  const polylineOptions = useMemo(() => ({
     color: isRoadRoute ? '#2980b9' : '#3498db',
     weight: isRoadRoute ? 5 : 4,
     opacity: 0.85,
     lineJoin: 'round',
     dashArray: isRoadRoute ? null : '5, 10',
-  };
+  }), [isRoadRoute]);
   
-  // Calculate how many direction indicators to show based on route length
-  // For road routes, use fewer indicators since the route has many points
-  const directionIndicatorStep = isRoadRoute ? Math.ceil(routePoints.length / 10) : 3;
+  // Calculate direction indicators
+  const getDirectionMarkers = useCallback(() => {
+    if (routePoints.length < 3) return [];
+    
+    const markers = [];
+    const step = Math.max(1, Math.floor(routePoints.length / 8)); // Show about 8 arrows
+    
+    for (let i = step; i < routePoints.length - step; i += step) {
+      const prevPoint = routePoints[i - 1];
+      const nextPoint = routePoints[i + 1];
+      
+      if (prevPoint && nextPoint) {
+        // Calculate direction angle
+        const dx = nextPoint[1] - prevPoint[1]; // longitude difference
+        const dy = nextPoint[0] - prevPoint[0]; // latitude difference
+        const angle = Math.atan2(dx, dy) * (180 / Math.PI);
+        
+        markers.push(
+          <Marker
+            key={`arrow-${i}`}
+            position={routePoints[i]}
+            icon={L.divIcon({
+              html: `
+                <div style="
+                  width: 0;
+                  height: 0;
+                  border-left: 6px solid transparent;
+                  border-right: 6px solid transparent;
+                  border-bottom: 12px solid ${isRoadRoute ? '#2980b9' : '#3498db'};
+                  transform: rotate(${angle}deg);
+                  filter: drop-shadow(0 2px 3px rgba(0,0,0,0.3));
+                "></div>
+              `,
+              className: 'route-arrow-marker',
+              iconSize: [12, 12],
+              iconAnchor: [6, 6]
+            })}
+          />
+        );
+      }
+    }
+    
+    return markers;
+  }, [routePoints, isRoadRoute]);
+  
+  const directionMarkers = useMemo(() => getDirectionMarkers(), [getDirectionMarkers]);
   
   return (
     <>
-      {/* Main route line with arrowheads */}
-      <Polyline 
-        ref={polylineRef}
-        positions={routePoints}
-        pathOptions={polylineOptions}
-        eventHandlers={{
-          add: (e) => {
-            if (isRoadRoute) {
-              const polyline = e.target;
-              polyline.arrowheads({
-                frequency: '200px', 
-                size: '12px',
-                fill: true,
-                yawn: 40
-              });
-            }
-          }
-        }}
-      />
-      
       {/* Shadow line for better visibility */}
       {isRoadRoute && (
         <Polyline 
@@ -197,50 +163,18 @@ const RouteLayer = ({ routeData }) => {
             weight: 8,
             opacity: 0.3,
             lineJoin: 'round',
-            dashArray: null
           }}
         />
       )}
       
-      {/* Direction indicators - draw small arrows along the route */}
-      {routePoints.length > 2 && routePoints.map((point, index) => {
-        // Skip first and last point, and only add indicators at intervals
-        if (index === 0 || 
-            index === routePoints.length - 1 || 
-            index % directionIndicatorStep !== 0) return null;
-        
-        // Get direction from previous to next point
-        // For better direction calculation, look 2 points ahead and behind for road routes
-        const lookDistance = isRoadRoute ? 2 : 1;
-        const prevIndex = Math.max(0, index - lookDistance);
-        const nextIndex = Math.min(routePoints.length - 1, index + lookDistance);
-        
-        const prevPoint = routePoints[prevIndex];
-        const nextPoint = routePoints[nextIndex];
-        
-        // Only add direction indicators if we have both points
-        if (!prevPoint || !nextPoint) return null;
-        
-        // Calculate direction angle in radians
-        const angle = Math.atan2(
-          nextPoint[0] - prevPoint[0],
-          nextPoint[1] - prevPoint[1]
-        );
-        
-        // Create a custom arrow marker at this point
-        return (
-          <Marker
-            key={`dir-${index}`}
-            position={point}
-            icon={L.divIcon({
-              html: `<div class="route-arrow${isRoadRoute ? ' road-route' : ''}" style="transform: rotate(${angle}rad)">→</div>`,
-              className: 'route-arrow-container',
-              iconSize: [20, 20],
-              iconAnchor: [10, 10]
-            })}
-          />
-        );
-      })}
+      {/* Main route line */}
+      <Polyline 
+        positions={routePoints}
+        pathOptions={polylineOptions}
+      />
+      
+      {/* Direction arrows */}
+      {directionMarkers}
       
       {/* Road instruction markers for turns/maneuvers */}
       {isRoadRoute && hasSteps && routeData.steps.map((step, index) => {
@@ -252,7 +186,6 @@ const RouteLayer = ({ routeData }) => {
         }
         
         // Get coordinates for this step (if available)
-        // For simplicity, we'll place markers at specific intervals along the route
         const stepIndex = Math.floor((index + 1) * routePoints.length / (routeData.steps.length + 1));
         if (stepIndex >= routePoints.length) return null;
         

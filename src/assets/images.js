@@ -11,12 +11,15 @@ export const PUBLIC_IMAGES = {
   NAV: '/images/NAV.png',
   PICNIC: '/images/PICNIC.jpg',
   SKY: '/images/SKY.jpg',
-  
+ 
   // Destination images
   DESTINATIONS: {
     BOHOL: '/images/DESTINATIONS/Bohol.jpg',
     BORACAY: '/images/DESTINATIONS/Boracay.jpg',
-    ELNIDO: '/images/DESTINATIONS/ELNIDO.jpg'
+    ELNIDO: '/images/DESTINATIONS/ELNIDO.jpg',
+    KAYNIPA:'/images/DESTINATIONS/Caynipa.jpg',
+    BALITE: '/images/DESTINATIONS/BALITE.jpg',
+    SKYRANCH: '/images/DESTINATIONS/SKYRANCH.jpg'
   }
 };
 

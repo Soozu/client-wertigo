@@ -205,7 +205,7 @@ const ReviewSubmission = ({ isOpen, onClose, onReviewSubmitted }) => {
                 value={formData.destination}
                 onChange={handleInputChange}
                 className="form-input"
-                placeholder="e.g., Tagaytay, Naic, Ternate"
+                placeholder="e.g., Boracay, Palawan, Bohol"
                 disabled={isSubmitting}
                 required
               />

@@ -23,11 +23,11 @@ const Home = () => {
   const [showLoginPrompt, setShowLoginPrompt] = useState(false)
   const { isAuthenticated, user } = useAuth()
   
-  const destinations = ['Caynipa Cove', 'Balite Falls', 'Sky Ranch']
+  const destinations = ['Bohol', 'Boracay', 'El Nido']
   const slides = [
-    { image: '/images/DESTINATIONS/CAYNIPA.jpg', alt: 'CAYNIPA' },
-    { image: '/images/DESTINATIONS/BALITE.jpg', alt: 'BALITE' },
-    { image: '/images/DESTINATIONS/SKYRANCH.jpg', alt: 'SKYRANCH' }
+    { image: '/images/DESTINATIONS/Bohol.jpg', alt: 'Bohol' },
+    { image: '/images/DESTINATIONS/Boracay.jpg', alt: 'Boracay' },
+    { image: '/images/DESTINATIONS/ELNIDO.jpg', alt: 'El Nido' }
   ]
 
   const teamMembers = [

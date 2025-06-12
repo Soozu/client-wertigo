@@ -11,17 +11,17 @@ const AIChat = ({ isOpen, onToggle, onDestinationAdd, mapInstance }) => {
     {
       id: 1,
       type: 'bot',
-      content: `🌟 Hello! I'm WerTigo, your AI travel assistant!
+      content: `🌟 Hello! I'm WerTigo, your AI travel assistant for the Philippines!
 
-I can help you discover amazing destinations across Cavite! 
+I can help you discover amazing destinations across Luzon, Visayas, and Mindanao. 
 
 Try asking me:
-• "Show me beautiful beaches in Ternate"
-• "Restaurants in Tagaytay"
-• "Historical Sites in Kawit"
-• "Hidden gem cafes in Silang"
+• "Show me beautiful beaches in Boracay"
+• "Find restaurants in Tagaytay"
+• "Best historical sites in Manila"
+• "Budget-friendly resorts in Baguio"
 
-Where would you like to explore today?`,
+What would you like to explore today?`,
       timestamp: new Date(),
       isWelcome: true
     }
@@ -61,7 +61,7 @@ Where would you like to explore today?`,
       const botMessage = {
         id: Date.now(),
         type: 'bot',
-        content: 'Here are some amazing places I found for you:',
+        content: '✨ Here are some amazing places I found for you:',
         timestamp: new Date(),
         recommendations: recommendations
       };
@@ -408,7 +408,7 @@ Where would you like to explore today?`,
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
                 onKeyPress={handleKeyPress}
-                placeholder={isConnected ? "Ask me about destinations in Cavite..." : "Connect to backend first..."}
+                placeholder={isConnected ? "Ask me about places in the Philippines..." : "Connect to backend first..."}
                 disabled={loading || !isConnected}
               />
               <button 

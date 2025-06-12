@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { MapPin, Calendar, Users, Clock, Route, ArrowLeft, Star } from 'lucide-react'
 import TripMap from './TripMap'
+import { getDestinationImage, handleImageError, preloadDestinationImages } from '../utils/destinationImages'
 import './TripDetails.css'
 import './TripMap.css'
 
@@ -16,13 +17,57 @@ const TripDetails = ({ trip, onBack }) => {
   const routeData = trip.route_data
 
   const formatDate = (dateString) => {
-    if (!dateString) return 'Not set'
-    return new Date(dateString).toLocaleDateString('en-US', {
+    if (!dateString) return 'Today'
+    
+    const date = new Date(dateString)
+    const today = new Date()
+    
+    // Check if the date is today
+    if (date.toDateString() === today.toDateString()) {
+      return 'Today'
+    }
+    
+    // Check if date is in the future
+    const isFuture = date > today
+    
+    const formattedDate = date.toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'long',
       day: 'numeric'
     })
+    
+    return isFuture ? `${formattedDate} (Upcoming)` : formattedDate
   }
+
+  // Use current date as default for calculations when no start date is available
+  const getEffectiveStartDate = () => {
+    if (tracker_info?.save_date) return new Date(tracker_info.save_date)
+    if (trip.start_date) return new Date(trip.start_date)
+    return new Date() // Default to today
+  }
+
+  // Calculate trip duration in days
+  const calculateTripDuration = () => {
+    const startDate = getEffectiveStartDate()
+    
+    if (trip.end_date) {
+      // If both dates are available, calculate actual duration
+      const endDate = new Date(trip.end_date)
+      
+      // Calculate the time difference in milliseconds
+      const diffTime = Math.abs(endDate - startDate)
+      
+      // Convert to days and add 1 to include both the start and end dates
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1
+      
+      return diffDays
+    } else {
+      // If only start date is available, default to 7 days
+      return 7
+    }
+  }
+
+  const tripDuration = calculateTripDuration();
 
   // Calculate total budget from destinations
   const destinationsBudget = destinations.reduce((sum, dest) => {
@@ -30,8 +75,56 @@ const TripDetails = ({ trip, onBack }) => {
     return sum + budget
   }, 0)
 
+  // Calculate total budget from destinations and create budget ranges
+  const calculateBudgetRanges = () => {
+    let totalMinBudget = 0
+    let totalMaxBudget = 0
+    
+    destinations.forEach(dest => {
+      const budget = parseFloat(dest.budget) || 0
+      if (budget > 0) {
+        // Create a range: budget ± 20% for estimation
+        const minBudget = Math.floor(budget * 0.8)
+        const maxBudget = Math.ceil(budget * 1.2)
+        totalMinBudget += minBudget
+        totalMaxBudget += maxBudget
+      }
+    })
+    
+    return {
+      totalMinBudget,
+      totalMaxBudget,
+      hasValidBudgets: totalMinBudget > 0
+    }
+  }
+
+  const { totalMinBudget, totalMaxBudget, hasValidBudgets } = calculateBudgetRanges();
+
+  // Helper function to format budget range for individual destinations
+  const formatDestinationBudget = (budget) => {
+    const budgetAmount = parseFloat(budget)
+    if (!budgetAmount || budgetAmount <= 0) return null
+    
+    const minBudget = Math.floor(budgetAmount * 0.8)
+    const maxBudget = Math.ceil(budgetAmount * 1.2)
+    
+    return `₱${minBudget.toLocaleString()} - ₱${maxBudget.toLocaleString()}`
+  }
+
   // Use destinations budget if available, otherwise fall back to trip budget
   const totalBudget = destinationsBudget > 0 ? destinationsBudget : (parseFloat(trip.budget) || 0)
+  
+  // Calculate trip budget range if not calculated from destinations
+  const tripBudgetRange = () => {
+    if (hasValidBudgets) {
+      return `₱${totalMinBudget.toLocaleString()} - ₱${totalMaxBudget.toLocaleString()}`
+    } else if (totalBudget > 0) {
+      const minBudget = Math.floor(totalBudget * 0.8)
+      const maxBudget = Math.ceil(totalBudget * 1.2)
+      return `₱${minBudget.toLocaleString()} - ₱${maxBudget.toLocaleString()}`
+    }
+    return '₱0'
+  }
 
   // Load reviews from localStorage
   useEffect(() => {
@@ -40,6 +133,13 @@ const TripDetails = ({ trip, onBack }) => {
       setReviews(JSON.parse(savedReviews))
     }
   }, [trip.id])
+
+  // Preload destination images for better performance
+  useEffect(() => {
+    if (destinations && destinations.length > 0) {
+      preloadDestinationImages(destinations)
+    }
+  }, [destinations])
 
   // Save reviews to localStorage
   const saveReviews = (updatedReviews) => {
@@ -129,8 +229,11 @@ const TripDetails = ({ trip, onBack }) => {
             <Calendar size={24} />
           </div>
           <div className="info-content">
-            <h3>Save Date</h3>
-            <p>{formatDate(tracker_info?.save_date)}</p>
+            <h3>Trip Start Date</h3>
+            <p>{tracker_info?.save_date ? formatDate(tracker_info.save_date) : (trip.start_date ? formatDate(trip.start_date) : 'Today')}</p>
+            {trip.tracker_info?.start_date_formatted && trip.tracker_info?.start_date_formatted !== formatDate(tracker_info?.save_date || trip.start_date) && (
+              <small className="meta-note">Saved as: {trip.tracker_info.start_date_formatted}</small>
+            )}
           </div>
         </div>
 
@@ -150,7 +253,7 @@ const TripDetails = ({ trip, onBack }) => {
           </div>
           <div className="info-content">
             <h3>Budget</h3>
-            <p>₱{totalBudget.toLocaleString()}</p>
+            <p>{tripBudgetRange()} <span className="budget-label">(estimated)</span></p>
           </div>
         </div>
       </div>
@@ -179,15 +282,10 @@ const TripDetails = ({ trip, onBack }) => {
       {/* Interactive Map */}
       {destinations.length > 0 && (
         <div className="map-section">
-          <h2>🗺️ Trip Map & Route</h2>
+          <h2>🗺️ Trip Map</h2>
           <TripMap 
             destinations={destinations}
-            routeData={routeData}
             trackerId={tracker_info?.tracker_id}
-            onRouteCalculated={(route) => {
-              // Update route data if needed
-              console.log('Route calculated in TripDetails:', route)
-            }}
           />
         </div>
       )}
@@ -204,8 +302,10 @@ const TripDetails = ({ trip, onBack }) => {
           <div className="destinations-list">
             {destinations.map((destination, index) => (
               <div key={destination.id} className="destination-card">
-                <div className="destination-number">
-                  {index + 1}
+                <div className="destination-number-container">
+                  <div className="destination-number">
+                    {index + 1}
+                  </div>
                   {index === 0 && destinations.length > 1 && (
                     <span className="destination-badge start">START</span>
                   )}
@@ -214,45 +314,58 @@ const TripDetails = ({ trip, onBack }) => {
                   )}
                 </div>
                 
-                <div className="destination-content">
+                <div className="destination-content-wrapper">
                   <div className="destination-header">
                     <h3>{destination.name}</h3>
                     <span className="destination-category">{destination.category}</span>
                   </div>
                   
-                  {destination.city && destination.province && (
-                    <p className="destination-location">
-                      <MapPin size={16} />
-                      {destination.city}, {destination.province}
-                    </p>
-                  )}
-                  
-                  {destination.description && (
-                    <p className="destination-description">
-                      {destination.description}
-                    </p>
-                  )}
-                  
-                  <div className="destination-details">
-                    {destination.budget && parseFloat(destination.budget) > 0 && (
-                      <div className="detail-item">
-                        <span style={{ fontSize: '16px', color: '#27ae60' }}>₱</span>
-                        <span>{parseFloat(destination.budget).toLocaleString()}</span>
-                      </div>
-                    )}
+                  <div className="destination-details-grid">
+                    <div className="destination-image">
+                      <img 
+                        src={getDestinationImage(destination.name)}
+                        alt={destination.name}
+                        onError={(e) => handleImageError(e, destination.name)}
+                      />
+                    </div>
                     
-                    {destination.operating_hours && (
-                      <div className="detail-item">
-                        <Clock size={16} />
-                        <span>{destination.operating_hours}</span>
+                    <div className="destination-info">
+                      {destination.city && destination.province && (
+                        <p className="destination-location">
+                          <MapPin size={16} />
+                          {destination.city}, {destination.province}
+                        </p>
+                      )}
+                      
+                      {destination.description && (
+                        <p className="destination-description">
+                          {destination.description}
+                        </p>
+                      )}
+                      
+                      <div className="destination-details">
+                        {destination.budget && parseFloat(destination.budget) > 0 && (
+                          <div className="detail-item">
+                            <span style={{ fontSize: '16px', color: '#27ae60' }}>💰</span>
+                            <span>{formatDestinationBudget(destination.budget)} <span className="budget-label">(estimated)</span></span>
+                          </div>
+                        )}
+                        
+                        {destination.operating_hours && (
+                          <div className="detail-item">
+                            <Clock size={16} />
+                            <span>{destination.operating_hours}</span>
+                          </div>
+                        )}
+                        
+                        {destination.rating && (
+                          <div className="detail-item">
+                            <Star size={16} />
+                            <span>{destination.rating}/5</span>
+                          </div>
+                        )}
                       </div>
-                    )}
-                    
-                    {destination.rating && (
-                      <div className="detail-item">
-                        <span>⭐ {destination.rating}/5</span>
-                      </div>
-                    )}
+                    </div>
                   </div>
                 </div>
 
@@ -280,9 +393,20 @@ const TripDetails = ({ trip, onBack }) => {
             <div className="summary-label">Destinations</div>
           </div>
           <div className="summary-item">
-            <div className="summary-value">₱{totalBudget.toLocaleString()}</div>
-            <div className="summary-label">Est. Budget</div>
+            <div className="summary-value">{tripBudgetRange()}</div>
+            <div className="summary-label">Estimated Budget</div>
           </div>
+          {tripDuration && (
+            <div className="summary-item">
+              <div className="summary-value">{tripDuration}</div>
+              <div className="summary-label">
+                {trip.end_date ? 'Days' : 'Days (estimated)'}
+              </div>
+              <div className="start-date-info">
+                Starting: {tracker_info?.save_date ? formatDate(tracker_info.save_date) : (trip.start_date ? formatDate(trip.start_date) : 'Today')}
+              </div>
+            </div>
+          )}
           {routeData && (
             <>
               <div className="summary-item">
@@ -297,6 +421,22 @@ const TripDetails = ({ trip, onBack }) => {
               </div>
             </>
           )}
+        </div>
+        <div className="budget-note">
+          <small>All budget figures are estimates and may vary based on actual costs.</small>
+        </div>
+        <div className="trip-date-note">
+          <div className="date-note-content">
+            <Calendar size={16} />
+            <small>
+              {tracker_info?.save_date ? 
+                `Trip ${new Date(tracker_info.save_date) > new Date() ? 'starts' : 'started'} on ${formatDate(tracker_info.save_date)}` : 
+                (trip.start_date ? 
+                  `Trip ${new Date(trip.start_date) > new Date() ? 'starts' : 'started'} on ${formatDate(trip.start_date)}` : 
+                  'Trip starts today')}
+              {trip.end_date ? ` and ${new Date(trip.end_date) > new Date() ? 'ends' : 'ended'} on ${formatDate(trip.end_date)}` : ''}
+            </small>
+          </div>
         </div>
       </div>
 

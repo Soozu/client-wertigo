@@ -1,22 +1,22 @@
 .trip-map-container {
-  width: 100%;
   position: relative;
-  border-radius: 16px;
+  width: 100%;
+  border-radius: 12px;
+  margin-bottom: 2rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
   overflow: hidden;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-  background: white;
 }
 
 .trip-map-loading {
+  background: #f8f9fa;
+  height: 400px;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  height: 400px;
-  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-  border-radius: 16px;
+  border-radius: 12px;
   color: #6c757d;
-  border: 1px dashed #6c757d;
+  font-size: 1.1rem;
+  font-weight: 500;
 }
 
 .trip-map-loading p {
@@ -34,24 +34,27 @@
 }
 
 .route-btn {
-  background-color: #5c6bc0;
-  color: white;
+  background: linear-gradient(to right, #4a6bdf, #5c6bc0);
   border: none;
-  padding: 0.75rem 1.5rem;
+  color: white;
+  padding: 10px 16px;
   border-radius: 8px;
   font-weight: 600;
   cursor: pointer;
-  font-size: 0.9rem;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  transition: all 0.2s ease;
 }
 
 .route-btn:hover:not(:disabled) {
-  background-color: #3f51b5;
+  background: linear-gradient(to right, #3f51b5, #4a6bdf);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+  transform: translateY(-1px);
 }
 
 .route-btn:disabled {
-  opacity: 0.7;
+  background: #9fa8da;
   cursor: not-allowed;
-  background-color: #9fa8da;
+  box-shadow: none;
 }
 
 .route-error {
@@ -81,32 +84,37 @@
 
 /* Map legend styles */
 .map-legend {
-  padding: 1.5rem;
   background: white;
-  border-top: 1px solid #e9ecef;
+  padding: 1rem;
+  border-radius: 0 0 12px 12px;
+  border: 1px solid #e9ecef;
+  border-top: none;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
 
 .map-legend h4 {
-  margin: 0 0 1rem 0;
-  color: #2c3e50;
-  font-size: 1.1rem;
+  margin: 0 0 0.75rem 0;
+  font-size: 1rem;
   font-weight: 600;
+  color: #2c3e50;
 }
 
 .legend-items {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   gap: 0.75rem;
-  margin-bottom: 1.5rem;
+  max-height: 150px;
+  overflow-y: auto;
+  padding-right: 5px;
 }
 
 .legend-item {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 0.5rem;
   padding: 0.5rem;
   background: #f8f9fa;
-  border-radius: 8px;
+  border-radius: 6px;
   transition: background-color 0.2s;
 }
 
@@ -122,32 +130,48 @@
 .legend-text {
   font-size: 0.9rem;
   font-weight: 500;
-  color: #2c3e50;
+  color: #495057;
+  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 /* Route Info */
 .route-info {
-  background: linear-gradient(135deg, #e8f5e8 0%, #f0f8f0 100%);
-  padding: 1rem;
-  border-radius: 12px;
-  border: 1px solid #d4edda;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 12px;
+  background-color: #f8f9ff;
+  padding: 8px 12px;
+  border-radius: 6px;
+  justify-content: center;
 }
 
-.route-info p {
-  margin: 0 0 0.5rem 0;
+.route-distance, .route-time, .route-type {
+  display: inline-flex;
+  align-items: center;
   font-size: 0.9rem;
-  color: #155724;
+  color: #2c3e50;
+  background: white;
+  padding: 4px 10px;
+  border-radius: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
-.route-info p:last-child {
-  margin-bottom: 0;
+.route-distance::before {
+  content: '🚗';
+  margin-right: 5px;
 }
 
-.route-info strong {
-  color: #0f4419;
+.route-time::before {
+  content: '⏱️';
+  margin-right: 5px;
+}
+
+.route-type::before {
+  content: '🛣️';
+  margin-right: 5px;
 }
 
 /* Marker Popup */
@@ -157,19 +181,17 @@
 }
 
 .marker-popup h4 {
-  margin: 0 0 0.75rem 0;
-  color: #2c3e50;
+  margin: 0 0 0.5rem 0;
   font-size: 1.1rem;
   font-weight: 600;
-  border-bottom: 2px solid #667eea;
-  padding-bottom: 0.5rem;
+  color: #2c3e50;
 }
 
 .marker-popup p {
   margin: 0 0 0.5rem 0;
-  font-size: 0.85rem;
-  line-height: 1.4;
+  font-size: 0.9rem;
   color: #495057;
+  line-height: 1.4;
 }
 
 .marker-popup p:last-child {
@@ -221,32 +243,28 @@
     margin: 0.5rem auto 0;
   }
   
-  .map-legend {
-    padding: 1rem;
+  .legend-items {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    max-height: 120px;
   }
   
-  .legend-items {
-    grid-template-columns: 1fr;
-    gap: 0.5rem;
-  }
-
   .legend-item {
-    padding: 0.75rem;
+    padding: 0.35rem;
   }
-
-  .route-info {
-    padding: 0.75rem;
+  
+  .legend-text {
+    font-size: 0.8rem;
   }
-
+  
   .marker-popup {
     min-width: 180px;
     max-width: 250px;
   }
-
+  
   .marker-popup h4 {
     font-size: 1rem;
   }
-
+  
   .marker-popup p {
     font-size: 0.8rem;
   }

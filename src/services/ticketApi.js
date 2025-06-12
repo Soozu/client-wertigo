@@ -262,17 +262,35 @@ export const getTicketFormats = async () => {
 
 // Trip Tracker API Functions
 
-// Save a trip with tracker ID
-export const saveTripTracker = async (tripId, email, travelerName = '', phone = '', saveDate = '') => {
+/**
+ * Save a trip with tracker ID
+ * @param {string} tripId - The ID of the trip to save
+ * @param {string} email - Email address for the tracker
+ * @param {string} travelerName - Optional traveler name
+ * @param {string} phone - Optional phone number
+ * @param {string} saveDate - Optional save date (current date will be used if not provided)
+ * @param {string} startDate - Trip start date
+ * @returns {Promise<Object>} Result object
+ */
+export const saveTripTracker = async (tripId, email, travelerName = '', phone = '', saveDate = '', startDate = '') => {
   try {
     const { trackersAPI } = await import('./api.js');
+    
+    // Validate required fields
+    if (!tripId) throw new Error('Trip ID is required');
+    if (!email) throw new Error('Email is required');
+    if (!startDate) throw new Error('Trip start date is required');
+    
+    // Always use current date for saving if not provided
+    const currentDate = saveDate || new Date().toISOString().split('T')[0];
     
     const response = await trackersAPI.createTracker({
       tripId: tripId,
       email: email,
       travelerName: travelerName,
       phone: phone,
-      saveDate: saveDate
+      saveDate: currentDate,
+      startDate: startDate
     });
     
     if (response.success) {
@@ -281,7 +299,11 @@ export const saveTripTracker = async (tripId, email, travelerName = '', phone = 
         trackerId: response.tracker.trackerId,
         message: response.message,
         email: response.tracker.email,
-        createdAt: response.tracker.createdAt
+        createdAt: response.tracker.createdAt,
+        startDate: startDate,
+        tripName: response.tracker.tripName,
+        destination: response.tracker.destination,
+        shareUrl: response.tracker.shareUrl
       }
     } else {
       throw new Error(response.message || 'Failed to save trip tracker')

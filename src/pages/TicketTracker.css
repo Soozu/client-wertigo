@@ -24,6 +24,34 @@
   z-index: 1;
 }
 
+/* Override for trip details view */
+.tracker-main:has(.trip-details) {
+  padding-top: 8rem;
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.tracker-main:has(.trip-details) .container,
+.tracker-main.trip-details-active .container {
+  max-width: 100% !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  width: 100% !important;
+}
+
+.tracker-main:has(.trip-details) .tracker-section,
+.tracker-main.trip-details-active .tracker-section {
+  padding: 0 !important;
+  max-width: 100% !important;
+  width: 100% !important;
+}
+
+.tracker-main:has(.trip-details) .tracker-header,
+.tracker-main.trip-details-active .tracker-header {
+  margin-bottom: 2rem !important;
+  text-align: center !important;
+}
+
 .tracker-section {
   padding: 4rem 0;
 }
@@ -37,14 +65,15 @@
 .tracker-title {
   font-size: clamp(2.5rem, 5vw, 4rem);
   font-weight: 800;
-  color: white;
+  color: #2c3e50;
   margin: 0;
   letter-spacing: -0.02em;
   line-height: 1.1;
-  background-color: rgba(0, 0, 0, 0.2);
+  background-color: white;
   display: inline-block;
   padding: 0.5rem 2rem;
   border-radius: 10px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
 }
 
 .tracker-container {
@@ -54,6 +83,15 @@
   max-width: 1400px;
   margin: 0 auto;
   padding: 0 2rem;
+}
+
+/* Force full width for trip details view */
+.tracker-container:has(.trip-details) {
+  display: block !important;
+  max-width: 100% !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  grid-template-columns: none !important;
 }
 
 /* Form Section */
@@ -101,16 +139,29 @@
 }
 
 /* Full width for TripDetails */
+.tracker-container.trip-details-view {
+  display: block !important;
+  grid-template-columns: none !important;
+  max-width: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
 .tracker-results-section:has(.trip-details),
 .tracker-results-section.trip-details-view {
-  grid-column: 1 / -1;
-  max-width: none;
-  padding: 0;
-  background: transparent;
-  box-shadow: none;
-  border: none;
-  backdrop-filter: none;
-  transform: none;
+  display: block !important;
+  grid-column: auto !important;
+  max-width: 100% !important;
+  width: 100% !important;
+  padding: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  border: none !important;
+  backdrop-filter: none !important;
+  transform: none !important;
+  border-radius: 0 !important;
+  min-height: auto !important;
+  margin: 0 !important;
 }
 
 .tracker-results-section:has(.trip-details):hover,
@@ -122,7 +173,22 @@
 /* Hide form section when showing trip details */
 .tracker-container:has(.trip-details) .tracker-form-section,
 .tracker-container.trip-details-view .tracker-form-section {
-  display: none;
+  display: none !important;
+}
+
+/* Trip details specific styling for tracker context */
+.tracker-results-section .trip-details {
+  background: rgba(255, 255, 255, 0.98) !important;
+  border-radius: 20px !important;
+  padding: 2rem !important;
+  margin: 0 auto !important;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1) !important;
+  backdrop-filter: blur(10px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  max-width: 1200px !important;
+  width: 100% !important;
+  display: block !important;
+  position: relative !important;
 }
 
 /* Loading State */
@@ -280,7 +346,9 @@
   }
 
   .tracker-container.trip-details-view {
-    padding: 0;
+    padding: 0 !important;
+    display: block !important;
+    grid-template-columns: none !important;
   }
 
   .tracker-form-section,
@@ -290,7 +358,18 @@
   }
 
   .tracker-results-section.trip-details-view {
-    padding: 0;
+    padding: 0 !important;
+    margin: 0 !important;
+    display: block !important;
+    width: 100% !important;
+  }
+
+  .tracker-results-section .trip-details {
+    padding: 1rem !important;
+    margin: 0 !important;
+    border-radius: 16px !important;
+    max-width: 100% !important;
+    width: 100% !important;
   }
 
   .loading-state,

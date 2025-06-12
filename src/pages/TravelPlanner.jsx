@@ -16,14 +16,14 @@ const TravelPlanner = () => {
     currentTrip,
     tripLoading,
     tripError,
-    routeData,
-    routeLoading,
     createTrip,
     addDestination,
     removeDestination,
-    calculateRoute,
     loadTripFromSession,
-    geocodeLocation
+    geocodeLocation,
+    calculateRoute,
+    routeData,
+    routeLoading
   } = useTrip()
 
   // Load saved trip on component mount
@@ -106,20 +106,6 @@ const TravelPlanner = () => {
     }
   }
 
-  const handleCalculateRoute = async () => {
-    try {
-      const route = await calculateRoute()
-      
-      // Display route on map
-      if (route && mapRef.current) {
-        console.log('Route calculated:', route)
-        // The MapComponent will automatically display the route via routeData prop
-      }
-    } catch (error) {
-      console.error('Failed to calculate route:', error)
-    }
-  }
-
   const handleMapReady = (mapInstance) => {
     mapRef.current = mapInstance
   }
@@ -136,6 +122,19 @@ const TravelPlanner = () => {
       })
     } catch (error) {
       console.error('Failed to create trip:', error)
+    }
+  }
+
+  const handleCalculateRoute = async () => {
+    if (!currentTrip?.destinations || currentTrip.destinations.length < 2) {
+      alert('Add at least 2 destinations to calculate a route')
+      return
+    }
+    
+    try {
+      await calculateRoute()
+    } catch (error) {
+      console.error('Failed to calculate route:', error)
     }
   }
 
@@ -182,7 +181,7 @@ const TravelPlanner = () => {
 
         {/* Route Loading Indicator */}
         {routeLoading && (
-          <div className="loading-banner">
+          <div className="loading-banner route-loading">
             🗺️ Calculating route between destinations...
           </div>
         )}
@@ -208,11 +207,8 @@ const TravelPlanner = () => {
               <TripPlanner
                 trip={currentTrip}
                 onDestinationRemove={handleDestinationRemoved}
-                onCalculateRoute={handleCalculateRoute}
                 loading={tripLoading}
                 error={tripError}
-                routeData={routeData}
-                routeLoading={routeLoading}
               />
             ) : (
               <div className="no-trip-message">
@@ -227,11 +223,21 @@ const TravelPlanner = () => {
 
           {/* Center Column - Map */}
           <div className="map-section">
+            {routeData && (
+              <div className="route-details">
+                <div className="route-detail-item">
+                  <span>🚗 Distance: {routeData.distance_km} km</span>
+                </div>
+                <div className="route-detail-item">
+                  <span>⏱️ Time: {Math.round(routeData.time_min)} min</span>
+                </div>
+              </div>
+            )}
             <MapComponent 
               onMapReady={handleMapReady}
               destinations={currentTrip?.destinations || []}
               routeData={routeData}
-              routeLoading={routeLoading}
+              onCalculateRoute={handleCalculateRoute}
             />
           </div>
 

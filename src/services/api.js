@@ -895,64 +895,17 @@ export const geocodeWithTracking = async (query, trackerId = null) => {
 // Enhanced route calculation with tracking
 export const calculateRouteWithTracking = async (points, trackerId = null) => {
   try {
-    const { trackRouteCalculation, trackPythonInteraction } = await import('./ticketApi.js');
-    
-    const requestData = { points, pointsCount: points.length };
-    
-    // Track Python backend interaction if trackerId is provided
-    if (trackerId) {
-      try {
-        await trackPythonInteraction(trackerId, 'routing', requestData);
-      } catch (trackingError) {
-        console.warn('Failed to track Python interaction:', trackingError);
-      }
-    }
-
     // Make request to Python backend
     const response = await pythonClient.post('/api/route', { points });
     const data = response.data;
-
-    // Track route calculation
-    try {
-      await trackRouteCalculation(data, points, trackerId);
-    } catch (trackingError) {
-      console.warn('Failed to track route calculation:', trackingError);
-    }
-
-    // Track Python backend response if trackerId is provided
-    if (trackerId) {
-      try {
-        await trackPythonInteraction(trackerId, 'routing', requestData, {
-          distance_km: data.distance_km,
-          time_min: data.time_min,
-          source: data.source,
-          success: true
-        });
-      } catch (trackingError) {
-        console.warn('Failed to track Python response:', trackingError);
-      }
-    }
 
     return {
       success: true,
       ...data
     };
   } catch (error) {
-    console.error('Error calculating route with tracking:', error);
+    console.error('Error calculating route:', error);
     
-    // Track failed interaction
-    if (trackerId) {
-      try {
-        const { trackPythonInteraction } = await import('./ticketApi.js');
-        await trackPythonInteraction(trackerId, 'routing', { points }, {
-          error: error.message,
-          success: false
-        });
-      } catch (trackingError) {
-        console.warn('Failed to track failed interaction:', trackingError);
-      }
-    }
-
     return {
       success: false,
       error: error.response?.data?.message || error.message

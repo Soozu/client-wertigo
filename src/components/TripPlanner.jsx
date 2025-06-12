@@ -1,18 +1,19 @@
-import React, { useState } from 'react'
-import { Plus, MapPin, Calendar, Users, Save } from 'lucide-react'
-import { saveTripTracker } from '../services/ticketApi'
+import React, { useState, useEffect } from 'react'
+import { Plus, MapPin, Calendar, Users, Save, Trash2 } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
+import { trackersAPI } from '../services/api'
+import { getDestinationImage, handleImageError } from '../utils/destinationImages'
+import { formatCurrency, formatDate } from '../utils/formatters'
 import './TripPlanner.css'
 
 const TripPlanner = ({ 
   trip, 
   onDestinationRemove, 
-  onCalculateRoute,
   loading,
   error,
-  routeData,
-  routeLoading,
   readOnly = false
 }) => {
+  const navigate = useNavigate()
   const [isAddingDestination, setIsAddingDestination] = useState(false)
   const [newDestination, setNewDestination] = useState({
     name: '',
@@ -25,11 +26,12 @@ const TripPlanner = ({
   
   // Save trip modal state
   const [showSaveModal, setShowSaveModal] = useState(false)
+  const today = new Date().toISOString().split('T')[0] // Today's date in YYYY-MM-DD format
   const [saveFormData, setSaveFormData] = useState({
     email: '',
     travelerName: '',
     phone: '',
-    saveDate: new Date().toISOString().split('T')[0] // Default to today's date
+    startDate: today // Default to today's date
   })
   const [saveLoading, setSaveLoading] = useState(false)
   const [saveResult, setSaveResult] = useState(null)
@@ -113,33 +115,44 @@ const TripPlanner = ({
       return
     }
     
+    if (!saveFormData.startDate) {
+      alert('Trip start date is required!')
+      return
+    }
+    
     setSaveLoading(true)
     
     try {
-      const result = await saveTripTracker(
-        trip.id,
-        saveFormData.email.trim(),
-        saveFormData.travelerName.trim(),
-        saveFormData.phone.trim(),
-        saveFormData.saveDate
-      )
+      const result = await trackersAPI.createTracker({
+        tripId: trip.id,
+        email: saveFormData.email.trim(),
+        travelerName: saveFormData.travelerName.trim(),
+        phone: saveFormData.phone.trim(),
+        startDate: saveFormData.startDate,
+        saveDate: new Date().toISOString()
+      })
       
-      if (result.success) {
+      if (result && result.success) {
         setSaveResult({
           success: true,
-          trackerId: result.trackerId,
-          message: result.message
+          trackerId: result.tracker.trackerId,
+          message: result.message,
+          email: saveFormData.email,
+          startDate: saveFormData.startDate
         })
+        
+        // Tracker data is now saved to database via API
+        console.log('Tracker saved successfully:', result.tracker.trackerId)
       } else {
         setSaveResult({
           success: false,
-          error: result.error
+          error: result?.message || 'Failed to save trip'
         })
       }
     } catch (error) {
       setSaveResult({
         success: false,
-        error: 'Failed to save trip. Please try again.'
+        error: error.message || 'Failed to save trip'
       })
     } finally {
       setSaveLoading(false)
@@ -153,7 +166,7 @@ const TripPlanner = ({
       email: '',
       travelerName: '',
       phone: '',
-      saveDate: new Date().toISOString().split('T')[0]
+      startDate: today // Reset to today's date
     })
   }
 
@@ -178,7 +191,7 @@ const TripPlanner = ({
     let totalMaxBudget = 0
     
     destinations.forEach(dest => {
-    const budget = parseFloat(dest.budget) || 0
+      const budget = parseFloat(dest.budget) || 0
       if (budget > 0) {
         // Create a range: budget ± 20% for estimation
         const minBudget = Math.floor(budget * 0.8)
@@ -206,6 +219,14 @@ const TripPlanner = ({
     const maxBudget = Math.ceil(budgetAmount * 1.2)
     
     return `₱${minBudget.toLocaleString()} - ₱${maxBudget.toLocaleString()}`
+  }
+
+  // formatDate is now imported from utils/formatters
+
+  const handleViewTrip = () => {
+    if (saveResult && saveResult.success && saveResult.trackerId) {
+      navigate(`/trip/${saveResult.trackerId}`)
+    }
   }
 
   if (loading) {
@@ -264,16 +285,27 @@ const TripPlanner = ({
                 <span>{trip.destination}</span>
               </div>
             )}
-            {trip.start_date && trip.end_date && (
+            {trip.start_date ? (
               <div className="trip-detail">
                 <Calendar size={16} />
-                <span>{trip.start_date} - {trip.end_date}</span>
+                <span>Starts: {formatDate(trip.start_date)}</span>
+              </div>
+            ) : (
+              <div className="trip-detail">
+                <Calendar size={16} />
+                <span>Starts: Today</span>
+              </div>
+            )}
+            {trip.end_date && (
+              <div className="trip-detail">
+                <Calendar size={16} />
+                <span>Ends: {formatDate(trip.end_date)}</span>
               </div>
             )}
             {trip.budget && (
               <div className="trip-detail">
                 <span style={{ fontSize: '16px' }}>₱</span>
-                <span>₱{parseFloat(trip.budget).toLocaleString()}</span>
+                <span>₱{parseFloat(trip.budget).toLocaleString()} <span className="budget-label">(estimated)</span></span>
               </div>
             )}
           </div>
@@ -283,25 +315,6 @@ const TripPlanner = ({
       <div className="destinations-section">
         <div className="destinations-header">
           <h3>My Destinations ({destinations.length})</h3>
-          {destinations.length > 1 && (
-            <button 
-              className="calculate-route-btn"
-              onClick={onCalculateRoute}
-              disabled={routeLoading}
-              title="Calculate route between destinations"
-            >
-              {routeLoading ? (
-                <>
-                  <div className="btn-spinner"></div>
-                  Calculating...
-                </>
-              ) : (
-                <>
-              🗺️ Calculate Route
-                </>
-              )}
-            </button>
-          )}
         </div>
         
         <div className="destinations-list">
@@ -323,6 +336,15 @@ const TripPlanner = ({
                       <span className="destination-badge end">END</span>
                     )}
                   </div>
+                  
+                  <div className="destination-image-small">
+                    <img 
+                      src={getDestinationImage(destination.name)}
+                      alt={destination.name}
+                      onError={(e) => handleImageError(e, destination.name)}
+                    />
+                  </div>
+                  
                 <div className="destination-info">
                   <h4>{destination.name}</h4>
                   <span className="destination-category">{destination.category}</span>
@@ -396,9 +418,12 @@ const TripPlanner = ({
               )}
             </div>
             <div className="stat-label">
-              {hasValidBudgets ? 'Est. Budget Range' : 'Total Budget'}
+              Estimated Budget
             </div>
           </div>
+        </div>
+        <div className="budget-note">
+          <small>All budget figures are estimates and may vary based on actual costs.</small>
         </div>
       </div>
 
@@ -455,14 +480,15 @@ const TripPlanner = ({
                 </div>
                 
                 <div className="form-group">
-                  <label htmlFor="saveDate">Save Date *</label>
+                  <label htmlFor="startDate">Trip Start Date *</label>
                   <input
                     type="date"
-                    id="saveDate"
-                    value={saveFormData.saveDate}
-                    onChange={(e) => setSaveFormData({...saveFormData, saveDate: e.target.value})}
+                    id="startDate"
+                    value={saveFormData.startDate}
+                    onChange={(e) => setSaveFormData({...saveFormData, startDate: e.target.value})}
                     required
                   />
+                  <small className="form-help-text">When do you plan to start your trip? (required)</small>
                 </div>
                 
                 <div className="modal-actions">
@@ -476,7 +502,7 @@ const TripPlanner = ({
                   <button 
                     className="btn btn-primary"
                     onClick={handleSaveTrip}
-                    disabled={saveLoading || !saveFormData.email.trim() || !saveFormData.saveDate}
+                    disabled={saveLoading || !saveFormData.email.trim() || !saveFormData.startDate}
                   >
                     {saveLoading ? (
                       <>
@@ -522,6 +548,7 @@ const TripPlanner = ({
                         <li>Enter your email: <code>{saveFormData.email}</code></li>
                         <li>View your complete trip itinerary!</li>
                       </ol>
+                      <p>Your trip is scheduled to start on: <strong>{saveFormData.startDate === today ? 'Today' : new Date(saveFormData.startDate).toLocaleDateString()}</strong></p>
                     </div>
                   </div>
                 ) : (
@@ -533,6 +560,12 @@ const TripPlanner = ({
                 )}
                 
                 <div className="modal-actions">
+                  <button 
+                    className="btn btn-primary"
+                    onClick={handleViewTrip}
+                  >
+                    View Trip
+                  </button>
                   <button 
                     className="btn btn-primary"
                     onClick={handleCloseSaveModal}

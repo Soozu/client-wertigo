@@ -79,7 +79,7 @@ const TicketTracker = () => {
     <div className="ticket-tracker">
       <Header />
       
-      <main className="tracker-main">
+      <main className={`tracker-main ${selectedTrip ? 'trip-details-active' : ''}`}>
         <div className="container">
           <section className="tracker-section">
             <div className="tracker-header">

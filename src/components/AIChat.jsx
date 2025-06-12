@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Send, X, Minimize2, MapPin, Star, Clock, Phone } from 'lucide-react';
 import { useRecommendations } from '../hooks/useRecommendations';
 import { useSession } from '../context/SessionContext';
+import { getDestinationImage, handleImageError, preloadDestinationImages } from '../utils/destinationImages';
 import './ChatInterface.css';
 import './AIChat.css';
 
@@ -65,6 +66,9 @@ What would you like to explore today?`,
         recommendations: recommendations
       };
       setMessages(prev => [...prev, botMessage]);
+      
+      // Preload destination images for better performance
+      preloadDestinationImages(recommendations);
     }
   }, [recommendations]);
 
@@ -201,6 +205,14 @@ What would you like to explore today?`,
       </div>
       
       <div className="recommendation-category">{destination.category}</div>
+      
+      <div className="recommendation-image">
+        <img 
+          src={getDestinationImage(destination.name)}
+          alt={destination.name}
+          onError={(e) => handleImageError(e, destination.name)}
+        />
+      </div>
       
       <p className="recommendation-description">
         {destination.description.length > 120 

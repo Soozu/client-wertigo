@@ -62,8 +62,8 @@ const TripDetails = ({ trip, onBack }) => {
       
       return diffDays
     } else {
-      // If only start date is available, default to 7 days
-      return 7
+      // Always return 1 day if no end date is specified
+      return 1
     }
   }
 
@@ -256,19 +256,6 @@ const TripDetails = ({ trip, onBack }) => {
             <p>{tripBudgetRange()} <span className="budget-label">(estimated)</span></p>
           </div>
         </div>
-
-        <div className="trip-info-card">
-          <div className="info-icon">
-            <Clock size={24} />
-          </div>
-          <div className="info-content">
-            <h3>Duration</h3>
-            <p>
-              {tripDuration} {tripDuration === 1 ? 'Day' : 'Days'}
-              {trip.end_date ? '' : (tripDuration === 1 ? '' : ' (estimated)')}
-            </p>
-          </div>
-        </div>
       </div>
 
       {/* Route Information */}
@@ -407,14 +394,12 @@ const TripDetails = ({ trip, onBack }) => {
           </div>
           <div className="summary-item">
             <div className="summary-value">{tripBudgetRange()}</div>
-            <div className="summary-label">{(hasValidBudgets || totalBudget > 0) && destinations.length > 0 ? (destinations.length === 1 ? 'Estimated Budget' : 'Estimated Budget (estimated)') : 'Estimated Budget'}</div>
+            <div className="summary-label">Estimated Budget</div>
           </div>
           {tripDuration && (
             <div className="summary-item">
-              <div className="summary-value">{tripDuration}</div>
-              <div className="summary-label">
-                {trip.end_date ? 'Days' : (tripDuration === 1 ? 'Day' : 'Days (estimated)')}
-              </div>
+              <div className="summary-value">1</div>
+              <div className="summary-label">Day</div>
               <div className="start-date-info">
                 Starting: {tracker_info?.save_date ? formatDate(tracker_info.save_date) : (trip.start_date ? formatDate(trip.start_date) : 'Today')}
               </div>

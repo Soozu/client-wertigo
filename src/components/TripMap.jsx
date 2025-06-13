@@ -27,7 +27,7 @@ const RouteLayer = ({ routeData }) => {
   
   // Get the route type for styling
   const routeType = routeData.source || 'direct';
-  const isRoadRoute = routeType === 'graphhopper' || routeType === 'openrouteservice';
+  const isRoadRoute = routeType === 'graphhopper';
   
   // Center the map on the route when it's loaded
   useEffect(() => {
@@ -287,8 +287,7 @@ const TripMap = ({ destinations = [], trackerId = null }) => {
               <span className="route-distance">Distance: {routeData.distance_km.toFixed(1)} km</span>
               <span className="route-time">Time: {Math.round(routeData.time_min)} min</span>
               <span className="route-type">
-                {routeData.source === 'graphhopper' ? 'Road Route (GraphHopper)' : 
-                 routeData.source === 'openrouteservice' ? 'Road Route (ORS)' : 'Direct Route'}
+                {routeData.source === 'graphhopper' ? 'Road Route' : 'Direct Route'}
               </span>
             </div>
           )}

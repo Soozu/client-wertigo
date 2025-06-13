@@ -213,8 +213,8 @@ const TravelPlanner = () => {
             ) : (
               <div className="no-trip-message">
                 <div className="no-trip-content">
-                  <h3>🌟 Start Your Philippine Adventure!</h3>
-                  <p>Create a new trip to begin planning your journey through the beautiful islands of the Philippines.</p>
+                  <h3>🌟 Start Your Adventure! </h3>
+                  <p>Create a new trip to begin planning your journey.</p>
                   <p>Ask the AI assistant about destinations, and I'll help you build the perfect itinerary!</p>
                 </div>
               </div>

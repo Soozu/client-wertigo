@@ -23,11 +23,11 @@ const Home = () => {
   const [showLoginPrompt, setShowLoginPrompt] = useState(false)
   const { isAuthenticated, user } = useAuth()
   
-  const destinations = ['Bohol', 'Boracay', 'El Nido']
+  const destinations = ['Caynipa Cove', 'Balite Falls', 'Sky Ranch']
   const slides = [
-    { image: '/images/DESTINATIONS/Bohol.jpg', alt: 'Bohol' },
-    { image: '/images/DESTINATIONS/Boracay.jpg', alt: 'Boracay' },
-    { image: '/images/DESTINATIONS/ELNIDO.jpg', alt: 'El Nido' }
+    { image: '/images/DESTINATIONS/CAYNIPA.jpg', alt: 'Caynipa' },
+    { image: '/images/DESTINATIONS/BALITE.jpg', alt: 'Balite' },
+    { image: '/images/DESTINATIONS/SKYRANCH.jpg', alt: 'Sky' }
   ]
 
   const teamMembers = [
@@ -241,7 +241,7 @@ const Home = () => {
             <>
               <h1>Welcome back, {user.name}!</h1>
               <h1>Ready for your next adventure?</h1>
-              <h3>Continue planning your Philippine journey!</h3>
+              <h3>Continue planning your journey!</h3>
               <br />
               <h3>Explore amazing places like <span className="typed-text">{typedText}</span>?</h3>
               

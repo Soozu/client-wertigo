@@ -11,17 +11,17 @@ const AIChat = ({ isOpen, onToggle, onDestinationAdd, mapInstance }) => {
     {
       id: 1,
       type: 'bot',
-      content: `🌟 Hello! I'm WerTigo, your AI travel assistant for the Philippines!
+      content: `🌟 Hello! I'm WerTigo, your AI travel assistant for Cavite!
 
-I can help you discover amazing destinations across Luzon, Visayas, and Mindanao. 
+I can help you discover amazing destinations within Cavite. 
 
 Try asking me:
-• "Show me beautiful beaches in Boracay"
-• "Find restaurants in Tagaytay"
-• "Best historical sites in Manila"
-• "Budget-friendly resorts in Baguio"
+• "Show me beautiful beaches in Naic"
+• "Things to do in Tagaytay"
+• "Historical Sites in Kawit"
+• "Budget-friendly resorts in Ternate"
 
-What would you like to explore today?`,
+Where would you like to explore today?`,
       timestamp: new Date(),
       isWelcome: true
     }

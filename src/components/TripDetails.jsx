@@ -62,8 +62,8 @@ const TripDetails = ({ trip, onBack }) => {
       
       return diffDays
     } else {
-      // If only start date is available, default to 7 days
-      return 7
+      // Always return 1 day if no end date is specified
+      return 1
     }
   }
 
@@ -398,10 +398,8 @@ const TripDetails = ({ trip, onBack }) => {
           </div>
           {tripDuration && (
             <div className="summary-item">
-              <div className="summary-value">{tripDuration}</div>
-              <div className="summary-label">
-                {trip.end_date ? 'Days' : 'Days (estimated)'}
-              </div>
+              <div className="summary-value">1</div>
+              <div className="summary-label">Day</div>
               <div className="start-date-info">
                 Starting: {tracker_info?.save_date ? formatDate(tracker_info.save_date) : (trip.start_date ? formatDate(trip.start_date) : 'Today')}
               </div>
